@@ -1,0 +1,98 @@
+int Gtest
+char Gtestc
+int Garray
+Garray[0][0] = 1
+Garray[0][1] = 2
+Garray[1][0] = 2
+Garray[1][1] = 1
+void main()
+int Tmain_j
+Lmain_j = 2 + 0
+char Tmain_jj
+Lmain_jj = 98 + 0
+T0 = 1 / Lmain_j
+Gj = 0 + T0
+T1 = 1 + 0
+Gtest = 0 + T1
+T2 = Gtest + 0
+Gj = 0 + T2
+T3 = 0 + 0
+T4 = 0 + 0
+T5 = array[T3][T4]
+Gj = 0 + T5
+T6 = 0 + 0
+T7 = 0 + 0
+T8 = Lmain_j + 0
+T9 = 1 + 0
+T10 = 1 * 1
+T11 = 1 * 1
+T10 = T10 + T11
+T12 = 1 * 1
+T10 = T10 + T12
+T13 = 1 * 1
+T10 = T10 + T13
+T14 = 1 * 1
+T10 = T10 + T14
+T15 = 1 * 1
+T10 = T10 + T15
+T16 = 1 * 1
+T10 = T10 + T16
+T17 = 1 * 1
+T10 = T10 + T17
+T18 = 1 * 1
+T10 = T10 + T18
+T19 = 1 * 1
+T10 = T10 + T19
+T10 = T10 + T9
+Gtest = 0 + T10
+Print String "Hello World"
+T11 = Gtest + Lmain_jj
+Print Ident T11
+Read Char Gjj
+T12 = Lmain_jj + 0
+Print Ident T12
+Read Int Gj
+T13 = Lmain_j + 0
+Print Ident T13
+T14 = Gtest + 0
+Print Ident T14
+T15 = 1 * 1
+T15 = Gtest + T15
+T16 = 1 * 1
+T15 = T15 + T16
+T16 = 5 + 0
+T15 = T15 * 1
+T15 = T15 * T16
+T15 = T15 / 5
+T15 = T15 - 3
+Gj = 0 + T15
+T18 = Lmain_j + 0
+Print Ident T18
+T19 = Lmain_j + 98
+T19 = T19 - 98
+T19 = T19 + 1
+Print Ident T19
+T20 = 98 + 0
+Print Ident T20
+T21 = 98 + 0
+Print Ident T21
+T22 = 1 + 0
+Gj = 0 + T22
+T23 = 2 + 2
+T24 = 2 + 2
+T23 = 1 * T23
+T23 = T23 / T24
+T26 = 1 + 3
+T27 = 5 - 4
+T27 = T27 + 4
+T28 = Lmain_j + 1
+T26 = T26 / 4
+T26 = T26 * 5
+T26 = T26 / T27
+T23 = T23 + T26
+T23 = T23 + T28
+T23 = T23 - 3
+Gj = 0 + T23
+T30 = Lmain_j + 0
+Print Ident T30
+Print String "2222"
