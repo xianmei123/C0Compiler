@@ -103,7 +103,8 @@ enum MidCodeType
     ReturnInt,
     ReturnChar,
     ReturnEmpty,
-    ReturnIdent
+    ReturnIdent,
+    Finish
 };
 
 struct FourYuanItem {
@@ -131,7 +132,7 @@ struct PostfixItem {
 	string str;					  
 	int number;					  
 	bool isCharVar;				  
-	bool isOperator;			
+	bool isOperator;
 };
 
 #endif

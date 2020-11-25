@@ -11,5 +11,8 @@ string calculateExpr(vector<PostfixItem> &postfix, int &tmpCount, int &value, bo
 void printMidCodeToFile(vector<FourYuanItem> &fourItems);
 int calculateOff(int baseOffset);
 string mapT(string s);
+string mapToVar(ofstream& out, string name, int flag);
+void assignStatMips(ofstream& out, FourYuanItem& fy);
+int calculateArrayOff(FourYuanItem& fy, ofstream& out);
 void turnToMips(vector<FourYuanItem> &fourItems);
 #endif

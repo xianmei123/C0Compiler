@@ -78,13 +78,14 @@ class GrammarAnalyzer {
         void condition();
         int stride();
         ValueType expr(string &tmpName);
+        ValueType expr(vector<PostfixItem>& infix);
         ValueType item(vector<PostfixItem> &infix);
         ValueType factor(vector<PostfixItem> &infix);
         void conditionalStat();
         void funStatReturn(string funcName);
         void funStatNonReturn(string funcName);
         void valueParaTable(string funcName);
-        void assignStat(ValueType vtl);
+        void assignStat(ValueType vtl, string funcName);
         void caseStat();
         void caseTable(ValueType vt, string tmpName, string label);
         void caseSubStat(ValueType vt, string tmpName, string label, string nextLabel);

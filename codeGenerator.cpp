@@ -10,8 +10,11 @@ const string mipsCodeFileName = "mips.txt";
 static int labelCount = 1;
 vector<string> strs;
 map<string, int> varToStack;
-map<string, int> midVarToSpace;
-
+map<string, int> varToAddr;
+map<string, int> tmpToAddr;
+map<string, int> globalToAddr;
+map<string, int> funcVarSize;
+map<string, int> funcTmpSize;
 
 const unsigned int dataBaseAddr = 0x10010000;
 unsigned int strMemSize;
@@ -23,6 +26,7 @@ unsigned int paraVarBaseAddr;
 unsigned int paraTopAddr;
 unsigned int varBaseAddr;
 unsigned int varTopAddr;
+int tmpSize = 0;
 
 string generateTmpName(int num) {
     return "T" + to_string(num);
@@ -39,7 +43,7 @@ void turnToPostfixExpr(vector<PostfixItem> infix, vector<PostfixItem> & postfix)
     }
     
     PostfixItem it = infix.at(0);
-    if (it.valueType == CHAR && (it.number == '+' || it.number == '+') && it.isOperator == true) {
+    if (it.valueType == CHAR && (it.number == '+' || it.number == '-') && it.isOperator == true) {
         if (it.number == '+') {
             infix.erase(infix.begin());
         }
@@ -61,8 +65,15 @@ void turnToPostfixExpr(vector<PostfixItem> infix, vector<PostfixItem> & postfix)
                 case '+':
                 case '-':{
                     while (tmp.size() != 0) {
-                        postfix.push_back(tmp.at(tmp.size() - 1));
-                        tmp.pop_back();
+                        
+                        PostfixItem t0 = tmp.at(tmp.size() - 1);
+                        if (t0.number != '(') {
+                            postfix.push_back(t0);
+                            tmp.pop_back();
+                        }
+                        else {
+                            break;
+                        }
                     }
                     tmp.push_back(t);}
                     break;
@@ -79,6 +90,18 @@ void turnToPostfixExpr(vector<PostfixItem> infix, vector<PostfixItem> & postfix)
                         }
                     }
                     tmp.push_back(t);}
+                    break;
+                case ')':{
+                    while (tmp.at(tmp.size() - 1).number != '(') {
+                        PostfixItem t0 = tmp.at(tmp.size() - 1);
+                        postfix.push_back(t0);
+                        tmp.pop_back();
+                    }
+                    
+                    tmp.pop_back();}
+                    break;
+                case '(':
+                    tmp.push_back(t);
                     break;
                 default:
                     postfix.push_back(t);
@@ -104,15 +127,17 @@ string calculateExpr(vector<PostfixItem> &postfix, int &tmpCount, int &value, bo
     if (postfix.size() == 1) {
         t = postfix.at(0);
         fy.codeType = AssignState;
-        printf("ddddd %s \n", t.str.c_str());
+        //printf("ddddd %s \n", t.str.c_str());
         t = postfix.at(0);
-        if (t.str.length() > 0 && t.str.at(0) == 'T') {
+        if (t.str.size() > 0 && t.str.at(0) == 'T') {
             fy.left = t.str;
             fy.right = to_string(0);
             fy.rightValue = 0;
             fy.target = t.str;
+            printf("target : %s \n", t.str.c_str());
             return t.str;
         }
+        printf("target : %s \n", t.str.c_str());
         tmpName0 = generateTmpName(tmpCount++);
         if (t.valueType == INT || t.valueType == CHAR) {
             fy.valueType = t.valueType;
@@ -260,10 +285,36 @@ string calculateExpr(vector<PostfixItem> &postfix, int &tmpCount, int &value, bo
 
 void printMidCodeToFile(vector<FourYuanItem> &fourItems) {
     ofstream out(midCodeFileName, ios::out);
+    int gOff = 0;
+    int lOff = 12;
+    int tOff = 4;
+    string func = " ";
+    int size = 0;
     for (int i = 0; i < fourItems.size(); i++) {
         FourYuanItem fy = fourItems.at(i);
         switch (fy.codeType) {
-            case VarDef:
+            case VarDef:{
+                if (fy.dim == 0) {
+                    size = 4;
+                }
+                else if (fy.dim == 1) {
+                    size = fy.x * 4;
+                }
+                else {
+                    size = fy.x * fy.y * 4;
+                }
+                if (fy.target.at(0) == 'G') {
+                    globalToAddr.insert(map<string, int>::value_type(fy.target, gOff));
+                    //printf("%s %d\n", fy.target.c_str(), gOff);
+                    gOff = gOff + size;
+                    //printf("%s %d\n", fy.target.c_str(), gOff);
+                }
+                else if (fy.target.at(0) == 'L') {
+                    varToAddr.insert(map<string, int>::value_type(fy.target, lOff));
+                    
+                    lOff = lOff + size;
+                }
+                //off = off + size;
                 if (fy.valueType == CHAR) {
                     out << "char " + fy.target << endl;
                     //printf("char %s\n", fy.target.c_str());
@@ -271,17 +322,21 @@ void printMidCodeToFile(vector<FourYuanItem> &fourItems) {
                 else if (fy.valueType == INT) {
                     out << "int " + fy.target << endl;
                     //printf("char %s\n", fy.target.c_str());
-                }
+                }}
                 break;
             case AssignArray:
                 if (fy.dim == 2) {
-                    out << fy.target << "[" + to_string(fy.x) + "][" + to_string(fy.y) + "] = " << fy.left << endl;
+                    out << fy.arrayName << "[" + fy.left + "][" + fy.right + "] = " << fy.target << endl;
                 }
                 else if (fy.dim == 1) {
-                    out << fy.target << "[" + to_string(fy.x) + "] = " << fy.left << endl;
+                    out << fy.arrayName << "[" + fy.left + "] = " << fy.target << endl;
                 }
                 break;
             case AssignByArray:
+                if (fy.target.at(0) == 'T') {
+                    tmpToAddr.insert(map<string, int>::value_type(fy.target, tOff));
+                    tOff += 4;
+                }
                 if (fy.dim == 1) {
                     out << fy.target << " = " + fy.arrayName + "[" + fy.left + "]" << endl;
                 }
@@ -290,9 +345,23 @@ void printMidCodeToFile(vector<FourYuanItem> &fourItems) {
                 }
                 break;
             case AssignState:
+                if (fy.target.at(0) == 'T') {
+                    tmpToAddr.insert(map<string, int>::value_type(fy.target, tOff));
+                    tOff += 4;
+                }
                 out << fy.target << " = " << fy.left << " " << fy.op << " " << fy.right << endl;
                 break;
+            case Finish:
+                funcVarSize.insert(map<string, int>::value_type(func, lOff - 4));
+                funcTmpSize.insert(map<string, int>::value_type(func, tOff - 4));
+                break;
             case FunctionDef:
+                funcVarSize.insert(map<string, int>::value_type(func, lOff - 4));
+                funcTmpSize.insert(map<string, int>::value_type(func, tOff - 4));
+                gOff = 0;
+                lOff = 12;
+                tOff = 4;
+                func = fy.target;
                 if (fy.funcType == VOID) {
                     out << "void ";
                 }
@@ -305,6 +374,9 @@ void printMidCodeToFile(vector<FourYuanItem> &fourItems) {
                 out << fy.target << "()" << endl;
                 break;
             case ParamDef:
+                varToAddr.insert(map<string, int>::value_type(fy.target, lOff));
+                printf("para: %s off:%d \n", fy.target.c_str(), lOff);
+                lOff += 4;
                 if (fy.valueType == INT) {
                     out << "Param int ";
                 }
@@ -389,10 +461,10 @@ int calculateMidOff(int baseOffset) {
 }
 
 string mapReg(string s) {
-    string s1 = s.substr(1, s.length());
+    string s1 = s.substr(1, s.size());
     //printf("%s dd\n", s1.c_str());
     int num = 0;
-    for (int i = 0; i < s1.length(); i++) {
+    for (int i = 0; i < s1.size(); i++) {
         if (s1.at(i) >= '0' && s1.at(i) <= '9') {
             num = num * 10 + (s1.at(i) - '0');
         }
@@ -407,8 +479,399 @@ string mapReg(string s) {
     return "$t" + to_string(num);
 }
 
+string mapToVar(ofstream& out, string name, int flag) {
+    int offset = 0;
+    string reg = "";
+    if (flag == 0) {
+        reg = "$t8";
+    }
+    else if (flag == 1) {
+        reg = "$t9";
+    }
+    map<string, int>::iterator iter;
+    if (name.size() > 0 && name.at(0) == 'G') {
+        iter = globalToAddr.find(name);
+        if (iter != globalToAddr.end()) {
+            offset = iter->second;
+        }
+        if (flag == 2) {
+            out << "sw " << "$t8," << offset << "($k0)" << endl;
+        }
+        else {
+            out << "lw " << reg + "," << offset << "($k0)" << endl;
+        }
+        return reg;
+    }
+    else if (name.size() > 0 && name.at(0) == 'L') {
+        iter = varToAddr.find(name);
+        if (iter != varToAddr.end()) {
+            offset = iter->second;
+        }
+        if (flag == 2) {
+            out << "sw " << "$t8," << -offset << "($fp)" << endl;
+        }
+        else {
+            out << "lw " << reg + "," << -offset << "($fp)" << endl;
+            printf("para :%s, off:%d\n", name.c_str(), offset);
+        }
+        return reg;
+    }
+    else if (name.size() > 0 && name.at(0) == 'T') {
+        iter = tmpToAddr.find(name);
+        if (iter != tmpToAddr.end()) {
+            offset = iter->second;
+        }
+        /*else {
+            out << "sw " << reg + "," << -tmpSize - 4 << "($sp)" << endl;
+            tmpSize = tmpSize + 4;
+            tmpToAddr.insert(map<string, int>::value_type(name, tmpSize));
+        }*/
+        if (flag == 2) {
+            out << "sw " << "$t8," << -offset << "($sp)" << endl;
+        }
+        else {
+            out << "lw " << reg + "," << -offset << "($sp)" << endl;
+        }
+        
+        return reg;
+    }
+    
+}
+
+void assignStatMips(ofstream &out, FourYuanItem &fy) {
+    int offset = 0;
+    string l, r, t;
+    int ll, rr, tt;
+    bool lIsCon = false, rIsCon = false, tIsCon = false;
+    //out << fy.target << " = " << fy.left << " " << fy.op << " " << fy.right << endl;
+    if (fy.left.size() > 0 && (fy.left.at(0) == 'G' || fy.left.at(0) == 'L' || fy.left.at(0) == 'T')) {
+        l = mapToVar(out, fy.left, 0);
+    }
+    else if (fy.left == "RET") {
+        l = "$v1";
+    }
+    else {
+        ll = fy.leftValue;
+        //printf("l%d\n", fy.leftValue);
+        lIsCon = true;
+    }
+    if (fy.right.size() > 0 && (fy.right.at(0) == 'G' || fy.right.at(0) == 'L' || fy.right.at(0) == 'T')) {
+        r = mapToVar(out, fy.right, 1);
+    }
+    else if (fy.right == "RET") {
+        r = "$v1";
+    }
+    else {
+        rr = fy.rightValue;
+        //printf("r%d\n", fy.rightValue);
+        rIsCon = true;
+    }
+    if (fy.target.size() > 0 && (fy.target.at(0) == 'G' || fy.target.at(0) == 'L' || fy.target.at(0) == 'T')) {
+        t = "$t8";
+        if (lIsCon == true && rIsCon == true) {
+            switch (fy.op) {
+            case '+':
+                tt = rr + ll;
+                break;
+            case '-':
+                tt = ll - rr;
+                break;
+            case '*':
+                tt = ll * rr;
+                break;
+            case '/':
+                tt = ll / rr;
+                break;
+            default:
+                break;
+            }
+            out << "li " << t << "," + to_string(tt) << endl;
+
+        }
+        else if (lIsCon == true && rIsCon == false) {
+            switch (fy.op) {
+            case '+':
+                out << "addi " << t << "," + r + "," + to_string(ll) << endl;
+                break;
+            case '-':
+                out << "li $t8," << to_string(ll) << endl;
+                out << "sub " << t << ",$t8," + r << endl;
+                break;
+            case '*':
+                out << "mul " << t << "," + r + "," + to_string(ll) << endl;
+                break;
+            case '/':
+                out << "li $t8," << to_string(ll) << endl;
+                out << "div " << t << ",$t8," + r << endl;
+                //out << "div " << t << "," + r + "," + to_string(ll) << endl;
+                break;
+            default:
+                break;
+            }
+            //out << "addi " << t << "," + r + "," + to_string(ll) << endl;
+        }
+        else if (lIsCon == false && rIsCon == true) {
+            switch (fy.op) {
+            case '+':
+                out << "addi " << t << "," + l + "," + to_string(rr) << endl;
+                break;
+            case '-':
+                out << "addi " << t << "," + l + "," + to_string(-rr) << endl;
+                break;
+            case '*':
+                out << "mul " << t << "," + l + "," + to_string(rr) << endl;
+                break;
+            case '/':
+                out << "div " << t << "," + l + "," + to_string(rr) << endl;
+                //out << "ddd" << endl;
+                break;
+            default:
+                break;
+            }
+            //out << "addi " << t << "," + l + "," + to_string(rr) << endl;
+        }
+        else {
+            switch (fy.op) {
+            case '+':
+                out << "add " << t << "," + l + "," + r << endl;
+                break;
+            case '-':
+                out << "sub " << t << "," + l + "," + r << endl;
+                break;
+            case '*':
+                out << "mul " << t << "," + l + "," + r << endl;
+                break;
+            case '/':
+                out << "div " << l + "," + r << endl;
+                out << "mflo " << t << endl;
+                break;
+            default:
+                break;
+            }
+            //out << "add " << t << "," + l + "," + r << endl;
+        }
+        mapToVar(out, fy.target, 2);
+        
+    }
+}
+
+int calculateArrayOff(FourYuanItem &fy, ofstream &out) {
+    string type;
+    if (fy.arrayName.size() > 0 && fy.arrayName.at(0) == 'L') {
+        type = "sub ";
+    }
+    else {
+        type = "add ";
+    }
+    string name = fy.arrayName;
+    map<string, int>::iterator iter;
+    int offset = 0;
+    iter = globalToAddr.find(name);
+    if (iter != globalToAddr.end()) {
+        offset = iter->second;
+    }
+    iter = varToAddr.find(name);
+    if (iter != varToAddr.end()) {
+        offset = iter->second;
+        //printf("offset %d\n", offset);
+    }
+    printf("str %s offset %d\n", name.c_str(), offset);
+    string l, r, t;
+    int ll, rr, tt;
+    bool lIsCon = false, rIsCon = false, tIsCon = false;
+    if (fy.left.size() > 0 && (fy.left.at(0) == 'G' || fy.left.at(0) == 'L' || fy.left.at(0) == 'T')) {
+        l = mapToVar(out, fy.left, 0);
+    }
+    else if (fy.left == "RET") {
+        l = "$v1";
+    }
+    else {
+        ll = fy.leftValue;
+        //printf("l%d\n", fy.leftValue);
+        lIsCon = true;
+    }
+    if (fy.right.size() > 0 && (fy.right.at(0) == 'G' || fy.right.at(0) == 'L' || fy.right.at(0) == 'T')) {
+        r = mapToVar(out, fy.right, 1);
+    }
+    else if (fy.right == "RET") {
+        r = "$v1";
+    }
+    else {
+        rr = fy.rightValue;
+        //printf("r%d\n", fy.rightValue);
+        rIsCon = true;
+        
+    }
+    //if (fy.target.size() > 0 && (fy.target.at(0) == 'G' || fy.target.at(0) == 'L' || fy.target.at(0) == 'T')) {
+    //    t = mapToVar(out, fy.target, 0);
+    //}
+    //else if (fy.target == "RET") {
+    //    t = "$v1";
+    //}
+    //else {
+    //    tt = fy.targetValue;
+    //    //printf("r%d\n", fy.rightValue);
+    //    tIsCon = true;
+    //    out << "li $t8," << tt << endl;
+    //    t = "$t8";
+    //}
+    
+    string base;
+    if (fy.arrayName.size() > 0 && fy.arrayName.at(0) == 'G') {
+        base = "$k0";
+    }
+    else if (fy.arrayName.size() > 0 && fy.arrayName.at(0) == 'L') {
+        base = "$fp";
+    }
+    if (fy.dim == 1) {
+        if (lIsCon == true) {
+            
+            if (fy.arrayName.at(0) == 'G') {
+                offset = offset + fy.leftValue * 4;
+            }
+            else {
+                offset = -offset - fy.leftValue * 4;
+            }
+            if (fy.codeType == AssignArray) {
+                if (fy.target.size() > 0 && (fy.target.at(0) == 'G' || fy.target.at(0) == 'L' || fy.target.at(0) == 'T')) {
+                    t = mapToVar(out, fy.target, 1);
+                }
+                else {
+                    out << "li $t9," << fy.target << endl;
+                    t = "$t9";
+                }
+                out << "sw " + t + "," << offset << "(" + base + ")" << endl;
+                
+            }
+            else {
+                out << "lw $t8," << offset << "(" + base + ")" << endl;
+                
+                mapToVar(out, fy.target, 2);
+            }
+        }
+        else {
+            out << "mul " << l << "," + l + "," << 4 << endl;
+            out << "addi " << l << "," + l + "," << offset << endl;
+            out << type << l << "," + base + "," << l << endl;
+            
+            if (fy.codeType == AssignArray) {
+                if (fy.target.size() > 0 && (fy.target.at(0) == 'G' || fy.target.at(0) == 'L' || fy.target.at(0) == 'T')) {
+                    t = mapToVar(out, fy.target, 1);
+                }
+                else {
+                    out << "li $t9," << fy.target << endl;
+                    t = "$t9";
+                }
+                out << "sw " + t + "," << "0(" + l + ")" << endl;
+            }
+            else {
+                out << "lw $t8," << "0(" + l + ")" << endl;
+                mapToVar(out, fy.target, 2);
+            }
+        }
+    }
+    else if (fy.dim == 2) {
+        if (lIsCon == true && rIsCon == true) {
+            if (fy.arrayName.at(0) == 'G') {
+                offset = offset + fy.leftValue * fy.y * 4 + fy.rightValue * 4;
+            }
+            else {
+                offset = -offset - fy.leftValue * fy.y * 4 - fy.rightValue * 4;
+            }
+            
+            if (fy.codeType == AssignArray) {
+                if (fy.target.size() > 0 && (fy.target.at(0) == 'G' || fy.target.at(0) == 'L' || fy.target.at(0) == 'T')) {
+                    t = mapToVar(out, fy.target, 1);
+                }
+                else {
+                    out << "li $t9," << fy.target << endl;
+                    t = "$t9";
+                }
+                out << "sw " + t + "," << offset << "(" + base + ")" << endl;
+            }
+            else {
+                out << "lw $t8," << offset << "(" + base + ")" << endl;
+                mapToVar(out, fy.target, 2);
+            }
+            //out << type + t + "," << offset << "(" + base + ")" << endl;
+        }
+        else if (lIsCon == true && rIsCon == false) {
+            offset = offset + fy.leftValue * fy.y * 4;
+            
+            out << "mul " << r << "," + r + "," << 4 << endl;
+            out << "addi " << r << "," + r + "," << offset << endl;
+            out << type << r << "," + base + "," << r << endl;
+            if (fy.codeType == AssignArray) {
+                if (fy.target.size() > 0 && (fy.target.at(0) == 'G' || fy.target.at(0) == 'L' || fy.target.at(0) == 'T')) {
+                    t = mapToVar(out, fy.target, 1);
+                }
+                else {
+                    out << "li $t9," << fy.target << endl;
+                    t = "$t9";
+                }
+                out << "sw " + t + "," << "0(" + r + ")" << endl;
+            }
+            else {
+                out << "lw $t8," << "0(" + r + ")" << endl;
+                mapToVar(out, fy.target, 2);
+            }
+            //out << type + r + "," << "0(" + base + ")" << endl;
+        }
+        else if (lIsCon == false && rIsCon == true) {
+            
+            offset = offset + fy.rightValue * 4;
+            int si = fy.y * 4;
+            out << "mul " << l << "," + l + "," << si << endl;
+            out << "addi " << l << "," + l + "," << offset << endl;
+            out << type << l << "," + base + "," << l << endl;
+            if (fy.codeType == AssignArray) {
+                if (fy.target.size() > 0 && (fy.target.at(0) == 'G' || fy.target.at(0) == 'L' || fy.target.at(0) == 'T')) {
+                    t = mapToVar(out, fy.target, 1);
+                }
+                else {
+                    out << "li $t9," << fy.target << endl;
+                    t = "$t9";
+                }
+                out << "sw " + t + "," << "0(" + l + ")" << endl;
+            }
+            else {
+                out << "lw $t8," << "0(" + l + ")" << endl;
+                mapToVar(out, fy.target, 2);
+            }
+            //out << type + l + "," << "0(" + base + ")" << endl;
+        }
+        else {
+            int si = fy.y * 4;
+            out << "mul " << l << "," + l + "," << si << endl;
+            out << "mul " << r << "," + r + "," << 4 << endl;
+            out << "addi " << l << "," + l + "," << offset << endl;
+            out << "add " << l << "," + l + "," << r << endl;
+            out << type << l << "," + base + "," << l << endl;
+            //out << type + l + "," << "0(" + base + ")" << endl;
+            if (fy.codeType == AssignArray) {
+                if (fy.target.size() > 0 && (fy.target.at(0) == 'G' || fy.target.at(0) == 'L' || fy.target.at(0) == 'T')) {
+                    t = mapToVar(out, fy.target, 1);
+                }
+                else {
+                    out << "li $t9," << fy.target << endl;
+                    t = "$t9";
+                }
+                out << "sw " + t + "," << "0(" + l + ")" << endl;
+            }
+            else {
+                out << "lw $t8," << "0(" + l + ")" << endl;
+                mapToVar(out, fy.target, 2);
+            }
+        }
+        
+    }
+    return offset;
+}
+
 void turnToMips(vector<FourYuanItem> &fourItems) {
     ofstream out(mipsCodeFileName, ios::out);
+    string func;
+    int paraTop = 8;
     strMemSize = 0;
     out << ".data" << endl;
     out << "str0:    .asciiz    \"\\n\"" << endl;
@@ -423,304 +886,29 @@ void turnToMips(vector<FourYuanItem> &fourItems) {
     varBaseAddr = paraVarBaseAddr + 100;
     varTopAddr = varBaseAddr;  
     out << ".text" << endl;
-    out << "li $k0," << midVarBaseAddr << endl;
-    out << "j main" << endl;
+    out << "li $k0," << varBaseAddr << endl;
+    out << "move $fp,$sp" << endl;
+    map<string, int>::iterator iter;
+    int size = 0;
+    iter = funcVarSize.find("main");
+    if (iter != funcVarSize.end()) {
+        size = iter->second;
+    }
+    out << "addi $sp,$sp," << -size - 8 << endl;
+    //out << "j main" << endl;
     for (int i = 0; i < fourItems.size(); i++) {
         int offset = 0;
         FourYuanItem fy = fourItems.at(i);
         switch (fy.codeType) {
-            case AssignState:{
-                string l, r, t;
-                int ll, rr, tt;
-                bool lIsCon = false, rIsCon = false, tIsCon = false;
-                //out << fy.target << " = " << fy.left << " " << fy.op << " " << fy.right << endl;
-                if (fy.left.at(0) == 'G') {
-                    map<string, int>::iterator iter;
-                    iter = varToStack.find(fy.left);
-                    if (iter != varToStack.end()) {
-                        offset = iter->second;
-                    }
-                    offset = calculateOff(offset);
-                    //lw t8,offset(sp)
-                    l = "$t8";
-                    out << "lw " << l + "," + to_string(offset) + "($sp)" << endl;
-                }
-                else if (fy.left.at(0) == 'T') {
-                    if (strcmp(fy.left.c_str(), "T7") > 0) {
-                        map<string, int>::iterator iter;
-                        iter = midVarToSpace.find(fy.left);
-                        if (iter != midVarToSpace.end()) {
-                            offset = iter->second;
-                        }
-                        l = "$t8";
-                        out << "lw " << l + "," + to_string(offset) + "($k0)" << endl;
-                    }
-                    else {
-                        l = mapReg(fy.left);
-                    }
-                    
-                }
-                else {
-                    ll = fy.leftValue;
-                    //printf("l%d\n", fy.leftValue);
-                    lIsCon = true;
-                }
-                if (fy.right.at(0) == 'G') {
-                    map<string, int>::iterator iter;
-                    iter = varToStack.find(fy.right);
-                    if (iter != varToStack.end()) {
-                        offset = iter->second;
-                    }
-                    offset = calculateOff(offset);
-                    r = "$t9";
-                    out << "lw " << r + "," + to_string(offset) + "($sp)" << endl; //lw t9,offset(sp)
-                }
-                else if (fy.right.at(0) == 'T') {
-                     if (strcmp(fy.right.c_str(), "T7") > 0) {
-                        map<string, int>::iterator iter;
-                        iter = midVarToSpace.find(fy.right);
-                        if (iter != midVarToSpace.end()) {
-                            offset = iter->second;
-                        }
-                        r = "$t9";
-                        out << "lw " << r + "," + to_string(offset) + "($k0)" << endl;
-                    }
-                    else {
-                        r = mapReg(fy.right);
-                    }
-                }
-                else {
-                    rr = fy.rightValue;
-                    //printf("r%d\n", fy.rightValue);
-                    rIsCon = true;
-                }
-                if (fy.target.at(0) == 'G') {
-                    map<string, int>::iterator iter;
-                    iter = varToStack.find(fy.target);
-                    if (iter != varToStack.end()) {
-                        offset = iter->second;
-                        offset = calculateOff(offset);
-                    }
-                    else {
-                        out << "addi " << "$sp,$sp," + to_string(-4) << endl;
-                        top = top - 4;
-                        varToStack.insert(map<string, int>::value_type (fy.target, top - stackBase));
-                        offset = 0;
-                    }
-                    //addi t8,t8,t9 addi t8,t8,1 addi t8,t9,1
-                    //sw t8,offse(sp)
-                    t = "$t8";
-                    if (lIsCon == true && rIsCon == true) {
-                        switch (fy.op) {
-                            case '+':
-                                tt = rr + ll;
-                                break;
-                            case '-':
-                                tt = ll - rr;
-                                break;
-                            case '*':
-                                tt = ll * rr;
-                                break;
-                            case '/':
-                                tt = ll / rr;
-                                break;
-                            default:
-                                break;
-                        }
-                        out << "li " << t << "," + to_string(tt) << endl;
-                        
-                    }
-                    else if (lIsCon == true && rIsCon == false) {
-                        switch (fy.op) {
-                            case '+':
-                                out << "addi " << t << "," + r + "," + to_string(ll) << endl;
-                                break;
-                            case '-':
-                                out << "li $t8," << to_string(ll) << endl;
-                                out << "sub " << t << ",$t8," + r << endl;
-                                break;
-                            case '*':
-                                out << "mul " << t << "," + r + "," + to_string(ll) << endl;
-                                break;
-                            case '/':
-                                out << "li $t8," << to_string(ll) << endl;
-                                out << "div " << t << ",$t8," + r << endl;
-                                //out << "div " << t << "," + r + "," + to_string(ll) << endl;
-                                break;
-                            default:
-                                break;
-                        }
-                        //out << "addi " << t << "," + r + "," + to_string(ll) << endl;
-                    }
-                    else if (lIsCon == false && rIsCon == true) {
-                        switch (fy.op) {
-                            case '+':
-                                out << "addi " << t << "," + l + "," + to_string(rr) << endl;
-                                break;
-                            case '-':
-                                out << "addi " << t << "," + l + "," + to_string(-rr) << endl;
-                                break;
-                            case '*':
-                                out << "mul " << t << "," + l + "," + to_string(rr) << endl;
-                                break;
-                            case '/':
-                                out << "div " << t << "," + l + "," + to_string(rr) << endl;
-                                //out << "ddd" << endl;
-                                break;
-                            default:
-                                break;
-                        }
-                        //out << "addi " << t << "," + l + "," + to_string(rr) << endl;
-                    }
-                    else {
-                        switch (fy.op) {
-                            case '+':
-                                out << "add " << t << "," + l + "," + r << endl;
-                                break;
-                            case '-':
-                                out << "sub " << t << "," + l + "," + r << endl;
-                                break;
-                            case '*':
-                                out << "mul " << t << "," + l + "," + r << endl;
-                                break;
-                            case '/':
-                                out << "div " << l + "," + r << endl;
-                                out << "mflo " << t << endl;
-                                break;
-                            default:
-                                break;
-                        }
-                        //out << "add " << t << "," + l + "," + r << endl;
-                    }
-                    out << "sw " << t + "," + to_string(offset) + "($sp)" << endl;
-                }
-                else if (fy.target.at(0) == 'T') {
-                    //printf("%s\n", fy.target.c_str());
-
-                    int isMap = 0;
-                    if (strcmp(fy.target.c_str(), "T7") > 0) {
-                        isMap = 1;
-                        map<string, int>::iterator iter;
-                        iter = midVarToSpace.find(fy.target);
-                        if (iter != midVarToSpace.end()) {
-                            offset = iter->second;
-                        }
-                        else {
-                            //out << "li " << "$k1," + to_string(cuMidVarAddr) << endl;
-                            offset = cuMidVarAddr - midVarBaseAddr;
-                            midVarToSpace.insert(map<string, int>::value_type (fy.target, offset));
-                            
-                            cuMidVarAddr += 4;
-                        }
-                        t = "$t8";
-                        
-                    }
-                    else {
-                        t = mapReg(fy.target);
-                    }
-                    //printf("%s\n", t.c_str());
-                    if (lIsCon == true && rIsCon == true) {
-                        switch (fy.op) {
-                            case '+':
-                                tt = rr + ll;
-                                break;
-                            case '-':
-                                tt = ll - rr;
-                                break;
-                            case '*':
-                                tt = ll * rr;
-                                break;
-                            case '/':
-                                tt = ll / rr;
-                                break;
-                            default:
-                                break;
-                        }
-                        out << "li " << t << "," + to_string(tt) << endl;
-                        
-                    }
-                    else if (lIsCon == true && rIsCon == false) {
-                        switch (fy.op) {
-                            case '+':
-                                out << "addi " << t << "," + r + "," + to_string(ll) << endl;
-                                break;
-                            case '-':
-                                out << "li $t8," << to_string(ll) << endl;
-                                out << "sub " << t << ",$t8," + r << endl;
-                                //out << "addi " << t << "," + r + "," + to_string(-ll) << endl;
-                                break;
-                            case '*':
-                                out << "mul " << t << "," + r + "," + to_string(ll) << endl;
-                                break;
-                            case '/':
-                                out << "li $t8," << to_string(ll) << endl;
-                                out << "div " << t << ",$t8," + r << endl;
-                                //out << "div " << t << "," + r + "," + to_string(ll) << endl;
-                                break;
-                            default:
-                                break;
-                        }
-                        //out << "addi " << t << "," + r + "," + to_string(ll) << endl;
-                    }
-                    else if (lIsCon == false && rIsCon == true) {
-                        switch (fy.op) {
-                            case '+':
-                                out << "addi " << t << "," + l + "," + to_string(rr) << endl;
-                                break;
-                            case '-':
-                                out << "addi " << t << "," + l + "," + to_string(-rr) << endl;
-                                break;
-                            case '*':
-                                out << "mul " << t << "," + l + "," + to_string(rr) << endl;
-                                // out << "mult " <<  l + "," + r << endl;
-                                // out << "mflo " <<  t  << endl;
-                                break;
-                            case '/':
-                                out << "div " << t << "," + l + "," + to_string(rr) << endl;
-                                break;
-                            default:
-                                break;
-                        }
-                        //out << "addi " << t << "," + l + "," + to_string(rr) << endl;
-                    }
-                    else {
-                        switch (fy.op) {
-                            case '+':
-                                out << "add " << t << "," + l + "," + r << endl;
-                                break;
-                            case '-':
-                                out << "sub " << t << "," + l + "," + r << endl;
-                                break;
-                            case '*':
-                                out << "mul " << t << "," + l + "," + r << endl;
-                                break;
-                            case '/':
-                                out << "div " << l + "," + r << endl;
-                                out << "mflo " << t << endl;
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                    if (isMap == 1) {
-                        out << "sw " << t + "," + to_string(offset) + "($k0)" << endl;
-                    }
-                   
-                    // if (lIsCon == true && rIsCon == true) {
-                    //     out << "li " << t << "," + to_string(rr + ll) << endl;
-                    // }
-                    // else if (lIsCon == true && rIsCon == false) {
-                    //     out << "addi " << t << "," + r + "," + to_string(ll) << endl;
-                    // }
-                    // else if (lIsCon == false && rIsCon == true) {
-                    //     out << "addi " << t << "," + l + "," + to_string(rr) << endl;
-                    // }
-                    // else {
-                    //     out << "add " << t << "," + l + "," + r << endl;
-                    // }
-                }}
+            case AssignArray:
+            case AssignByArray:
+                calculateArrayOff(fy, out);
+                break;
+            case AssignState:
+                assignStatMips(out, fy);
                 break;
             case FunctionDef:
+                func = fy.target;
                 out << fy.target << ":" << endl;
                 break;
             case ParamDef:
@@ -738,37 +926,15 @@ void turnToMips(vector<FourYuanItem> &fourItems) {
                 //syscall
                 out << "li $v0,12" << endl;
                 out << "syscall" << endl;
-                map<string, int>::iterator iter;
-                iter = varToStack.find(fy.target);
-                if (iter != varToStack.end()) {
-                    offset = iter->second;
-                    offset = calculateOff(offset);
-                }
-                else {
-                    out << "addi " << "$sp,$sp," + to_string(-4) << endl;
-                    top = top - 4;
-                    varToStack.insert(map<string, int>::value_type (fy.target, top - stackBase));
-                    offset = 0;
-                }
-                out << "sw " << "$v0," + to_string(offset) + "($sp)" << endl;}
+                out << "move " << "$t8,$v0" << endl;
+                mapToVar(out, fy.target, 2);}
                 break;
             case ReadInt:{
                // out << "Read Int " << fy.target << endl;
                 out << "li $v0,5" << endl;
                 out << "syscall" << endl;
-                map<string, int>::iterator iter;
-                iter = varToStack.find(fy.target);
-                if (iter != varToStack.end()) {
-                    offset = iter->second;
-                    offset = calculateOff(offset);
-                }
-                else {
-                    out << "addi " << "$sp,$sp," + to_string(-4) << endl;
-                    top = top - 4;
-                    varToStack.insert(map<string, int>::value_type (fy.target, top - stackBase));
-                    offset = 0;
-                }
-                out << "sw " << "$v0," + to_string(offset) + "($sp)" << endl;}
+                out << "move " << "$t8,$v0" << endl;
+                mapToVar(out, fy.target, 2); }
                 break;
             case PrintStr:{
                 //out << "Print String " << "\"" << fy.target << "\"" << endl;
@@ -807,20 +973,9 @@ void turnToMips(vector<FourYuanItem> &fourItems) {
                 break;
             case PrintIdent:{
                 //out << "Print Ident " << fy.target << endl;
-                if (strcmp(fy.target.c_str(), "T1") > 0) {
-                    map<string, int>::iterator iter;
-                    iter = midVarToSpace.find(fy.target);
-                    if (iter != midVarToSpace.end()) {
-                            offset = iter->second;
-                    } 
-                   
-                    out << "lw " << "$a0," + to_string(offset) + "($k0)" << endl;
-                        
-                }
-                else {
-                    out << "move $a0," << mapReg(fy.target) << endl;
-                }
-                
+                string t;
+                t = mapToVar(out, fy.target, 0);
+                out << "move $a0," << t << endl;
                 if (fy.valueType == CHAR) {
                     out << "li $v0,11" << endl;
                 }
@@ -834,57 +989,99 @@ void turnToMips(vector<FourYuanItem> &fourItems) {
                 break;
             case Label:
                 out << fy.target << ":" << endl;
-                break;
-            case LSSm: {
-                if (fy.right.at(0) == 'G') {
-                    map<string, int>::iterator iter;
-                    iter = varToStack.find(fy.right);
-                    if (iter != varToStack.end()) {
-                        offset = iter->second;
-                    }
-                    offset = calculateOff(offset);
-                    // r = "$t9";
-                    // out << "lw " << r + "," + to_string(offset) + "($sp)" << endl; //lw t9,offset(sp)
-                }
-                else if (fy.right.at(0) == 'T') {
-                     if (strcmp(fy.right.c_str(), "T7") > 0) {
-                        map<string, int>::iterator iter;
-                        iter = midVarToSpace.find(fy.right);
-                        if (iter != midVarToSpace.end()) {
-                            offset = iter->second;
-                        }
-                        // r = "$t9";
-                        // out << "lw " << r + "," + to_string(offset) + "($k0)" << endl;
-                    }
-                    else {
-                        // r = mapReg(fy.right);
-                    }
-                }
-                FourYuanItem fyPre = fourItems.at(++i);
-                out << "blt " << fy.left << fy.right << fyPre.target << endl;}
-                break;
-            case LEQm: {
-                FourYuanItem fyPre = fourItems.at(++i);
-                out << "ble " << fy.left + "," << fy.right + "," << fyPre.target << endl;}
-                break;
-            case GREm: {
-                FourYuanItem fyPre = fourItems.at(++i);
-                out << "bgt " << fy.left + "," << fy.right + "," << fyPre.target << endl;}
-                break;
-            case GEQm: {
-                FourYuanItem fyPre = fourItems.at(++i);
-                out << "bge " << fy.left + "," << fy.right + "," << fyPre.target << endl;}
-                break;
-            case EQLm: {
-                FourYuanItem fyPre = fourItems.at(++i);
-                out << "beq " << fy.left + "," << fy.right + "," << fyPre.target << endl;}
-                break;
+                break;//blt,blr,bgt,bge,beq,bne
+            case LSSm: 
+            case LEQm: 
+            case GREm: 
+            case GEQm: 
+            case EQLm: 
             case NEQm: {
+                string type;
+                if (fy.codeType == LSSm) {
+                    type = "bge ";
+                }
+                else if (fy.codeType == LEQm) {
+                    type = "bgt ";
+                }
+                else if (fy.codeType == GREm) {
+                    type = "ble ";
+                }
+                else if (fy.codeType == GEQm) {
+                    type = "blt ";
+                }
+                else if (fy.codeType == EQLm) {
+                    type = "bne ";
+                }
+                else if (fy.codeType == NEQm) {
+                    type = "beq ";
+                }
+                string l = mapToVar(out, fy.left, 0);
+                string r;
+                if (fy.right.size() > 0 && (fy.right.at(0) == 'G' || fy.right.at(0) == 'L' || fy.right.at(0) == 'T')) {
+                    r = mapToVar(out, fy.right, 1);
+                }
+                else {
+                    r = fy.right;
+                }
                 FourYuanItem fyPre = fourItems.at(++i);
-                out << "bne " << fy.left + "," << fy.right + "," << fyPre.target << endl;}
+                out << type << l + "," << r + "," << fyPre.target << endl; }
                 break;
             case Goto: 
                 out << "j " << fy.target << endl;
+                break;
+            case ValueParamDeliver: {
+                map<string, int>::iterator iter;
+                int size = 0;
+                iter = funcTmpSize.find(func);
+                if (iter != funcTmpSize.end()) {
+                    size = iter->second;
+                }
+                paraTop += 4;
+                string t;
+                if (fy.target.size() > 0 && (fy.target.at(0) == 'G' || fy.target.at(0) == 'L' || fy.target.at(0) == 'T')) {
+                    t = mapToVar(out, fy.target, 0);
+                }
+                else {
+                    out << "li $t8," << fy.target << endl;
+                    t = "$t8";
+                }
+                out << "sw " << t << "," << -paraTop - size << "($sp)" << endl; }
+                break;
+            case FunctionCall: {
+                map<string, int>::iterator iter;
+                int size1 = 0, size2 = 0;
+                iter = funcTmpSize.find(func);
+                if (iter != funcTmpSize.end()) {
+                    size1 = iter->second;
+                }
+                out << "sw $fp," << -size1 - 4 << "($sp)" << endl;
+                out << "sw $ra," << -size1 - 8 << "($sp)" << endl;
+                out << "addi $fp,$sp," << -size1  << endl;
+                iter = funcVarSize.find(fy.target);
+                if (iter != funcVarSize.end()) {
+                    size2 = size1 + iter->second;
+                }
+                out << "addi $sp,$sp," << -size2 - 8 << endl;
+                out << "jal " + fy.target << endl;
+                if (fy.target == "main") {
+                    out << "li $v0,10" << endl;
+                    out << "syscall" << endl;
+                } 
+                else {
+                    out << "addi $sp,$sp," << size2 + 8 << endl;
+                    out << "lw $fp," << -size1 - 4 << "($sp)" << endl;
+                    out << "lw $ra," << -size1 - 8 << "($sp)" << endl;
+                }
+                paraTop = 8; }
+                break;
+            case ReturnIdent: {
+                string t;
+                t = mapToVar(out, fy.target, 0);
+                out << "move $v1," << t << endl;
+                out << "jr $ra" << endl; }
+                break;
+            case ReturnEmpty:
+                out << "jr $ra" << endl; 
                 break;
             default:
                 break;

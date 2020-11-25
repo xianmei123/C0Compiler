@@ -143,6 +143,7 @@
     <ClInclude Include="error.h" />
     <ClInclude Include="GrammarAnalyzer.h" />
     <ClInclude Include="LexicalAnalyzer.h" />
+    <ClInclude Include="opt.h" />
     <ClInclude Include="SymbolTable.h" />
     <ClInclude Include="type.h" />
   </ItemGroup>
@@ -160,6 +161,7 @@
     <Text Include="mips.txt" />
     <Text Include="output.txt" />
     <Text Include="testfile.txt" />
+    <Text Include="testfile1.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

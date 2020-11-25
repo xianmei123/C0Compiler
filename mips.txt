@@ -1,169 +1,569 @@
 .data
 str0:    .asciiz    "\n"
-str1:    .asciiz    "Hello World"
-str2:    .asciiz    "2222"
+str1:    .asciiz    "check_1 M_c="
+str2:    .asciiz    "const A_c="
+str3:    .asciiz    "BB[0][0]="
+str4:    .asciiz    "AA_c+AA[1]+BB[1][1]="
+str5:    .asciiz    "guanxi="
+str6:    .asciiz    "tiaojian="
+str7:    .asciiz    "kongyuju="
+str8:    .asciiz    "18182601"
+str9:    .asciiz    "check_1="
+str10:    .asciiz    "check_assign="
 .text
-li $k0,0
-j main
-main:
-li $t0,0
-addi $sp,$sp,-4
-addi $t8,$t0,0
-sw $t8,0($sp)
-li $t1,1
-addi $sp,$sp,-4
-addi $t8,$t1,0
-sw $t8,0($sp)
-lw $t8,0($sp)
-addi $t2,$t8,0
-addi $t8,$t2,0
-sw $t8,4($sp)
-li $t3,0
-li $t4,0
-addi $t8,$t5,0
-sw $t8,4($sp)
-li $t6,0
-li $t7,0
-li $t8,14868640
+li $k0,268501216
+move $fp,$sp
+addi $sp,$sp,-16
+li $t8,222
 sw $t8,0($k0)
-li $t8,1
+li $t8,333
 sw $t8,4($k0)
-li $s2,1
-li $s3,1
-add $s2,$s2,$s3
-li $s4,1
-add $s2,$s2,$s4
-li $s5,1
-add $s2,$s2,$s5
-li $s6,1
-add $s2,$s2,$s6
-li $s7,1
-add $s2,$s2,$s7
-li $s0,1
-add $s2,$s2,$s0
-li $s1,1
-add $s2,$s2,$s1
-li $s2,1
-add $s2,$s2,$s2
-li $s3,1
-add $s2,$s2,$s3
-lw $t9,4($k0)
-add $s2,$s2,$t9
-addi $t8,$s2,0
-sw $t8,0($sp)
+li $t8,444
+sw $t8,8($k0)
+li $t8,97
+sw $t8,16($k0)
+li $t8,98
+sw $t8,20($k0)
+li $t8,99
+sw $t8,24($k0)
+sw $fp,-4($sp)
+sw $ra,-8($sp)
+addi $fp,$sp,0
+addi $sp,$sp,-16
+jal main
+li $v0,10
+syscall
+check_1:
 la $a0,str1
 li $v0,4
 syscall
-lw $t8,0($sp)
-addi $s3,$t8,19830736
-lw $a0,0($k0)
-li $v0,1
-syscall
-la $a0,str0
-li $v0,4
-syscall
-li $v0,12
-syscall
-addi $sp,$sp,-4
-sw $v0,0($sp)
-li $s4,14868684
-lw $a0,0($k0)
+lw $t8,-12($fp)
+addi $t8,$t8,0
+sw $t8,-4($sp)
+lw $t8,-4($sp)
+move $a0,$t8
 li $v0,11
 syscall
 la $a0,str0
 li $v0,4
 syscall
-li $v0,5
-syscall
-sw $v0,8($sp)
-li $s5,14868684
-lw $a0,0($k0)
-li $v0,1
-syscall
-la $a0,str0
-li $v0,4
-syscall
-lw $t8,4($sp)
-addi $s6,$t8,0
-lw $a0,0($k0)
-li $v0,1
-syscall
-la $a0,str0
-li $v0,4
-syscall
-li $s7,1
-lw $t8,4($sp)
-add $s7,$t8,$s7
-li $s0,1
-add $s7,$s7,$s0
-li $s0,5
-mul $s7,$s7,1
-mul $s7,$s7,$s0
-div $s7,$s7,5
-addi $s7,$s7,-3
-addi $t8,$s7,0
-sw $t8,8($sp)
-li $s2,14868684
-lw $a0,0($k0)
-li $v0,1
-syscall
-la $a0,str0
-li $v0,4
-syscall
-li $s3,14868721
-addi $s3,$s3,-98
-addi $s3,$s3,1
-lw $a0,0($k0)
-li $v0,1
-syscall
-la $a0,str0
-li $v0,4
-syscall
-li $s4,98
-lw $a0,0($k0)
-li $v0,11
-syscall
-la $a0,str0
-li $v0,4
-syscall
-li $s5,98
-lw $a0,0($k0)
-li $v0,11
-syscall
-la $a0,str0
-li $v0,4
-syscall
-li $s6,1
-addi $t8,$s6,0
-sw $t8,8($sp)
-li $s7,4
-li $s0,4
-mul $s7,$s7,1
-div $s7,$s0
-mflo $s7
-li $s2,4
-li $s3,1
-addi $s3,$s3,4
-li $s4,14868624
-div $s2,$s2,4
-mul $s2,$s2,5
-div $s2,$s3
-mflo $s2
-add $s7,$s7,$s2
-add $s7,$s7,$s4
-addi $s7,$s7,-3
-addi $t8,$s7,0
-sw $t8,8($sp)
-li $s6,14868684
-lw $a0,0($k0)
-li $v0,1
-syscall
-la $a0,str0
-li $v0,4
-syscall
+lw $t8,-12($fp)
+addi $t8,$t8,0
+sw $t8,-8($sp)
+lw $t8,-8($sp)
+move $v1,$t8
+jr $ra
+check_assign:
+li $t8,51
+sw $t8,-20($fp)
+li $t9,0
+sw $t9,-24($fp)
+li $t9,0
+sw $t9,-28($fp)
+li $t9,0
+sw $t9,-32($fp)
+li $t9,1
+sw $t9,-36($fp)
+li $t9,1
+sw $t9,-40($fp)
+li $t9,1
+sw $t9,-44($fp)
+li $t9,1
+sw $t9,-48($fp)
+li $t9,1
+sw $t9,-52($fp)
+li $t9,1
+sw $t9,-56($fp)
 la $a0,str2
 li $v0,4
 syscall
+li $t8,42
+sw $t8,-4($sp)
+lw $t8,-4($sp)
+move $a0,$t8
+li $v0,11
+syscall
 la $a0,str0
 li $v0,4
 syscall
+lw $t8,-16($fp)
+addi $t8,$t8,0
+sw $t8,-8($sp)
+lw $t8,-8($sp)
+addi $t8,$t8,0
+sw $t8,-20($fp)
+li $t8,1
+sw $t8,-12($sp)
+lw $t8,-12($fp)
+addi $t8,$t8,0
+sw $t8,-16($sp)
+lw $t8,-12($sp)
+mul $t8,$t8,4
+addi $t8,$t8,24
+sub $t8,$fp,$t8
+lw $t9,-16($sp)
+sw $t9,0($t8)
+li $t8,1
+sw $t8,-20($sp)
+li $t8,1
+sw $t8,-24($sp)
+lw $t8,-12($fp)
+addi $t8,$t8,1
+sw $t8,-28($sp)
+lw $t8,-20($sp)
+lw $t9,-24($sp)
+mul $t8,$t8,12
+mul $t9,$t9,4
+addi $t8,$t8,36
+add $t8,$t8,$t9
+sub $t8,$fp,$t8
+lw $t9,-28($sp)
+sw $t9,0($t8)
+li $t8,0
+sw $t8,-32($sp)
+li $t8,0
+sw $t8,-36($sp)
+li $t8,1
+sw $t8,-40($sp)
+li $t8,1
+sw $t8,-44($sp)
+lw $t8,-40($sp)
+lw $t9,-44($sp)
+mul $t8,$t8,12
+mul $t9,$t9,4
+addi $t8,$t8,36
+add $t8,$t8,$t9
+sub $t8,$fp,$t8
+lw $t8,0($t8)
+sw $t8,-48($sp)
+lw $t9,-48($sp)
+li $t8,0
+sub $t8,$t8,$t9
+sw $t8,-48($sp)
+lw $t8,-32($sp)
+lw $t9,-36($sp)
+mul $t8,$t8,12
+mul $t9,$t9,4
+addi $t8,$t8,36
+add $t8,$t8,$t9
+sub $t8,$fp,$t8
+lw $t9,-48($sp)
+sw $t9,0($t8)
+la $a0,str3
+li $v0,4
+syscall
+li $t8,0
+sw $t8,-56($sp)
+li $t8,0
+sw $t8,-60($sp)
+lw $t8,-56($sp)
+lw $t9,-60($sp)
+mul $t8,$t8,12
+mul $t9,$t9,4
+addi $t8,$t8,36
+add $t8,$t8,$t9
+sub $t8,$fp,$t8
+lw $t8,0($t8)
+sw $t8,-64($sp)
+lw $t8,-64($sp)
+move $a0,$t8
+li $v0,1
+syscall
+la $a0,str0
+li $v0,4
+syscall
+la $a0,str4
+li $v0,4
+syscall
+li $t8,1
+sw $t8,-68($sp)
+lw $t8,-68($sp)
+mul $t8,$t8,4
+addi $t8,$t8,24
+sub $t8,$fp,$t8
+lw $t8,0($t8)
+sw $t8,-72($sp)
+li $t8,1
+sw $t8,-76($sp)
+li $t8,1
+sw $t8,-80($sp)
+lw $t8,-76($sp)
+lw $t9,-80($sp)
+mul $t8,$t8,12
+mul $t9,$t9,4
+addi $t8,$t8,36
+add $t8,$t8,$t9
+sub $t8,$fp,$t8
+lw $t8,0($t8)
+sw $t8,-84($sp)
+lw $t8,-20($fp)
+lw $t9,-72($sp)
+add $t8,$t8,$t9
+sw $t8,-72($sp)
+lw $t8,-72($sp)
+lw $t9,-84($sp)
+add $t8,$t8,$t9
+sw $t8,-72($sp)
+lw $t8,-72($sp)
+move $a0,$t8
+li $v0,1
+syscall
+la $a0,str0
+li $v0,4
+syscall
+li $t8,1
+sw $t8,-96($sp)
+lw $t8,-96($sp)
+mul $t8,$t8,4
+addi $t8,$t8,24
+sub $t8,$fp,$t8
+lw $t8,0($t8)
+sw $t8,-100($sp)
+li $t8,1
+sw $t8,-104($sp)
+li $t8,1
+sw $t8,-108($sp)
+lw $t8,-104($sp)
+lw $t9,-108($sp)
+mul $t8,$t8,12
+mul $t9,$t9,4
+addi $t8,$t8,36
+add $t8,$t8,$t9
+sub $t8,$fp,$t8
+lw $t8,0($t8)
+sw $t8,-112($sp)
+lw $t8,-20($fp)
+lw $t9,-100($sp)
+add $t8,$t8,$t9
+sw $t8,-100($sp)
+lw $t8,-100($sp)
+lw $t9,-112($sp)
+add $t8,$t8,$t9
+sw $t8,-100($sp)
+lw $t8,-100($sp)
+move $v1,$t8
+jr $ra
+check_conditon:
+li $t8,0
+sw $t8,-12($fp)
+lw $t8,0($k0)
+addi $t8,$t8,0
+sw $t8,-4($sp)
+li $t8,222
+sw $t8,-8($sp)
+lw $t8,-4($sp)
+lw $t9,-8($sp)
+bne $t8,$t9,Label2
+lw $t8,-12($fp)
+addi $t8,$t8,1
+sw $t8,-12($sp)
+lw $t8,-12($sp)
+addi $t8,$t8,0
+sw $t8,-12($fp)
+j Label1
+Label2:
+Label1:
+lw $t8,0($k0)
+addi $t8,$t8,0
+sw $t8,-16($sp)
+li $t8,222
+sw $t8,-20($sp)
+lw $t8,-16($sp)
+lw $t9,-20($sp)
+beq $t8,$t9,Label4
+lw $t8,-12($fp)
+addi $t8,$t8,2
+sw $t8,-24($sp)
+lw $t8,-24($sp)
+addi $t8,$t8,0
+sw $t8,-12($fp)
+j Label3
+Label4:
+Label3:
+lw $t8,0($k0)
+addi $t8,$t8,0
+sw $t8,-28($sp)
+li $t8,220
+sw $t8,-32($sp)
+lw $t8,-32($sp)
+addi $t8,$t8,2
+sw $t8,-32($sp)
+lw $t8,-28($sp)
+lw $t9,-32($sp)
+blt $t8,$t9,Label6
+lw $t8,-12($fp)
+addi $t8,$t8,5
+sw $t8,-36($sp)
+lw $t8,-36($sp)
+addi $t8,$t8,0
+sw $t8,-12($fp)
+j Label5
+Label6:
+Label5:
+lw $t8,0($k0)
+addi $t8,$t8,0
+sw $t8,-40($sp)
+li $t8,111
+sw $t8,-44($sp)
+lw $t8,-44($sp)
+mul $t8,$t8,2
+sw $t8,-44($sp)
+lw $t8,-40($sp)
+lw $t9,-44($sp)
+bgt $t8,$t9,Label8
+lw $t8,-12($fp)
+addi $t8,$t8,10
+sw $t8,-48($sp)
+lw $t8,-48($sp)
+addi $t8,$t8,0
+sw $t8,-12($fp)
+j Label7
+Label8:
+Label7:
+lw $t8,0($k0)
+addi $t8,$t8,0
+sw $t8,-60($sp)
+li $t8,222
+sw $t8,-56($sp)
+lw $t8,-60($sp)
+lw $t9,-56($sp)
+bge $t8,$t9,Label10
+lw $t8,-12($fp)
+addi $t8,$t8,20
+sw $t8,-60($sp)
+lw $t8,-60($sp)
+addi $t8,$t8,0
+sw $t8,-12($fp)
+j Label9
+Label10:
+Label9:
+lw $t8,0($k0)
+addi $t8,$t8,0
+sw $t8,-64($sp)
+li $t8,222
+sw $t8,-72($sp)
+lw $t8,-64($sp)
+lw $t9,-72($sp)
+ble $t8,$t9,Label12
+lw $t8,-12($fp)
+addi $t8,$t8,50
+sw $t8,-68($sp)
+lw $t8,-68($sp)
+addi $t8,$t8,0
+sw $t8,-12($fp)
+j Label11
+Label12:
+Label11:
+la $a0,str5
+li $v0,4
+syscall
+lw $t8,-12($fp)
+addi $t8,$t8,0
+sw $t8,-76($sp)
+lw $t8,-76($sp)
+move $a0,$t8
+li $v0,1
+syscall
+la $a0,str0
+li $v0,4
+syscall
+lw $t8,-12($fp)
+addi $t8,$t8,0
+sw $t8,-80($sp)
+li $t8,0
+sw $t8,-84($sp)
+lw $t8,-80($sp)
+lw $t9,-84($sp)
+beq $t8,$t9,Label14
+li $t8,0
+sw $t8,-96($sp)
+lw $t8,-96($sp)
+addi $t8,$t8,0
+sw $t8,-12($fp)
+j Label13
+Label14:
+Label13:
+lw $t8,0($k0)
+addi $t8,$t8,0
+sw $t8,-100($sp)
+li $t8,0
+sw $t8,-96($sp)
+lw $t8,-100($sp)
+lw $t9,-96($sp)
+bge $t8,$t9,Label16
+li $t8,-1
+sw $t8,-104($sp)
+lw $t8,-104($sp)
+addi $t8,$t8,0
+sw $t8,-12($fp)
+lw $t8,-12($fp)
+addi $t8,$t8,-1
+sw $t8,-108($sp)
+lw $t8,-108($sp)
+addi $t8,$t8,0
+sw $t8,-12($fp)
+j Label15
+Label16:
+lw $t8,0($k0)
+addi $t8,$t8,0
+sw $t8,-112($sp)
+li $t8,0
+sw $t8,-120($sp)
+lw $t8,-112($sp)
+lw $t9,-120($sp)
+bne $t8,$t9,Label18
+li $t8,0
+sw $t8,-124($sp)
+lw $t8,-124($sp)
+addi $t8,$t8,0
+sw $t8,-12($fp)
+j Label17
+Label18:
+li $t8,1
+sw $t8,-128($sp)
+lw $t8,-128($sp)
+addi $t8,$t8,0
+sw $t8,-12($fp)
+Label17:
+Label15:
+la $a0,str6
+li $v0,4
+syscall
+lw $t8,-12($fp)
+addi $t8,$t8,0
+sw $t8,-132($sp)
+lw $t8,-132($sp)
+move $a0,$t8
+li $v0,1
+syscall
+la $a0,str0
+li $v0,4
+syscall
+li $t8,0
+sw $t8,-136($sp)
+lw $t8,-136($sp)
+addi $t8,$t8,0
+sw $t8,-12($fp)
+lw $t8,-12($fp)
+addi $t8,$t8,0
+sw $t8,-140($sp)
+li $t8,0
+sw $t8,-144($sp)
+lw $t8,-140($sp)
+lw $t9,-144($sp)
+bne $t8,$t9,Label20
+j Label19
+Label20:
+li $t8,100
+sw $t8,-148($sp)
+lw $t8,-148($sp)
+addi $t8,$t8,0
+sw $t8,-12($fp)
+Label19:
+la $a0,str7
+li $v0,4
+syscall
+lw $t8,-12($fp)
+addi $t8,$t8,0
+sw $t8,-152($sp)
+lw $t8,-152($sp)
+move $a0,$t8
+li $v0,1
+syscall
+la $a0,str0
+li $v0,4
+syscall
+jr $ra
+check_empty:
+jr $ra
+main:
+la $a0,str8
+li $v0,4
+syscall
+la $a0,str0
+li $v0,4
+syscall
+lw $t8,20($k0)
+addi $t8,$t8,0
+sw $t8,-4($sp)
+lw $t8,-4($sp)
+sw $t8,-40($sp)
+sw $fp,-32($sp)
+sw $ra,-36($sp)
+addi $fp,$sp,-28
+addi $sp,$sp,-48
+jal check_1
+addi $sp,$sp,48
+lw $fp,-32($sp)
+lw $ra,-36($sp)
+addi $t8,$v1,0
+sw $t8,-8($sp)
+lw $t8,-8($sp)
+addi $t8,$t8,0
+sw $t8,16($k0)
+la $a0,str9
+li $v0,4
+syscall
+lw $t8,16($k0)
+addi $t8,$t8,0
+sw $t8,-12($sp)
+lw $t8,-12($sp)
+move $a0,$t8
+li $v0,11
+syscall
+la $a0,str0
+li $v0,4
+syscall
+lw $t8,0($k0)
+addi $t8,$t8,0
+sw $t8,-16($sp)
+lw $t8,16($k0)
+addi $t8,$t8,0
+sw $t8,-20($sp)
+lw $t8,-16($sp)
+sw $t8,-40($sp)
+lw $t8,-20($sp)
+sw $t8,-44($sp)
+sw $fp,-32($sp)
+sw $ra,-36($sp)
+addi $fp,$sp,-28
+addi $sp,$sp,-92
+jal check_assign
+addi $sp,$sp,92
+lw $fp,-32($sp)
+lw $ra,-36($sp)
+addi $t8,$v1,0
+sw $t8,-24($sp)
+lw $t8,-24($sp)
+addi $t8,$t8,0
+sw $t8,12($k0)
+la $a0,str10
+li $v0,4
+syscall
+lw $t8,12($k0)
+addi $t8,$t8,0
+sw $t8,-28($sp)
+lw $t8,-28($sp)
+move $a0,$t8
+li $v0,1
+syscall
+la $a0,str0
+li $v0,4
+syscall
+sw $fp,-32($sp)
+sw $ra,-36($sp)
+addi $fp,$sp,-28
+addi $sp,$sp,-48
+jal check_conditon
+addi $sp,$sp,48
+lw $fp,-32($sp)
+lw $ra,-36($sp)
+sw $fp,-32($sp)
+sw $ra,-36($sp)
+addi $fp,$sp,-28
+addi $sp,$sp,-44
+jal check_empty
+addi $sp,$sp,44
+lw $fp,-32($sp)
+lw $ra,-36($sp)
+jr $ra

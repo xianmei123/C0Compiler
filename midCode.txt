@@ -1,98 +1,214 @@
-int Gtest
-char Gtestc
-int Garray
-Garray[0][0] = 1
-Garray[0][1] = 2
-Garray[1][0] = 2
-Garray[1][1] = 1
-void main()
-int Tmain_j
-Lmain_j = 2 + 0
-char Tmain_jj
-Lmain_jj = 98 + 0
-T0 = 1 / Lmain_j
-Gj = 0 + T0
-T1 = 1 + 0
-Gtest = 0 + T1
-T2 = Gtest + 0
-Gj = 0 + T2
-T3 = 0 + 0
-T4 = 0 + 0
-T5 = array[T3][T4]
-Gj = 0 + T5
-T6 = 0 + 0
+int Ga
+Ga = 222 + 0
+int Gb
+Gb = 333 + 0
+int Gc
+Gc = 444 + 0
+int Gans
+char Gb_c
+Gb_c = 97 + 0
+char Gc_c
+Gc_c = 98 + 0
+char Gd_c
+Gd_c = 99 + 0
+call main
+char check_1()
+Param char Lcheck_1_m_c
+Print String "check_1 M_c="
+T0 = Lcheck_1_m_c + 0
+Print Ident T0
+T1 = Lcheck_1_m_c + 0
+ret T1
+int check_assign()
+Param int Lcheck_assign_n
+Param char Lcheck_assign_n_c
+char Lcheck_assign_aa_c
+Lcheck_assign_aa_c = 51 + 0
+int Lcheck_assign_aa
+Lcheck_assign_aa[0] = 0
+Lcheck_assign_aa[1] = 0
+Lcheck_assign_aa[2] = 0
+int Lcheck_assign_bb
+Lcheck_assign_bb[0][0] = 1
+Lcheck_assign_bb[0][1] = 1
+Lcheck_assign_bb[0][2] = 1
+Lcheck_assign_bb[1][0] = 1
+Lcheck_assign_bb[1][1] = 1
+Lcheck_assign_bb[1][2] = 1
+Print String "const A_c="
+T0 = 42 + 0
+Print Ident T0
+T1 = Lcheck_assign_n_c + 0
+Lcheck_assign_aa_c = T1 + 0
+T2 = 1 + 0
+T3 = Lcheck_assign_n + 0
+Lcheck_assign_aa[T2] = T3
+T4 = 1 + 0
+T5 = 1 + 0
+T6 = Lcheck_assign_n + 1
+Lcheck_assign_bb[T4][T5] = T6
 T7 = 0 + 0
-T8 = Lmain_j + 0
+T8 = 0 + 0
 T9 = 1 + 0
-T10 = 1 * 1
-T11 = 1 * 1
-T10 = T10 + T11
-T12 = 1 * 1
-T10 = T10 + T12
-T13 = 1 * 1
-T10 = T10 + T13
-T14 = 1 * 1
-T10 = T10 + T14
-T15 = 1 * 1
-T10 = T10 + T15
-T16 = 1 * 1
-T10 = T10 + T16
-T17 = 1 * 1
-T10 = T10 + T17
-T18 = 1 * 1
-T10 = T10 + T18
-T19 = 1 * 1
-T10 = T10 + T19
-T10 = T10 + T9
-Gtest = 0 + T10
-Print String "Hello World"
-T11 = Gtest + Lmain_jj
-Print Ident T11
-Read Char Gjj
-T12 = Lmain_jj + 0
-Print Ident T12
-Read Int Gj
-T13 = Lmain_j + 0
-Print Ident T13
-T14 = Gtest + 0
-Print Ident T14
-T15 = 1 * 1
-T15 = Gtest + T15
-T16 = 1 * 1
-T15 = T15 + T16
-T16 = 5 + 0
-T15 = T15 * 1
-T15 = T15 * T16
-T15 = T15 / 5
-T15 = T15 - 3
-Gj = 0 + T15
-T18 = Lmain_j + 0
+T10 = 1 + 0
+T11 = Lcheck_assign_bb[T9][T10]
+T11 = 0 - T11
+Lcheck_assign_bb[T7][T8] = T11
+Print String "BB[0][0]="
+T13 = 0 + 0
+T14 = 0 + 0
+T15 = Lcheck_assign_bb[T13][T14]
+Print Ident T15
+Print String "AA_c+AA[1]+BB[1][1]="
+T17 = 1 + 0
+T16 = Lcheck_assign_aa[T17]
+T18 = 1 + 0
+T19 = 1 + 0
+T20 = Lcheck_assign_bb[T18][T19]
+T16 = Lcheck_assign_aa_c + T16
+T16 = T16 + T20
+Print Ident T16
+T23 = 1 + 0
+T22 = Lcheck_assign_aa[T23]
+T24 = 1 + 0
+T25 = 1 + 0
+T26 = Lcheck_assign_bb[T24][T25]
+T22 = Lcheck_assign_aa_c + T22
+T22 = T22 + T26
+ret T22
+void check_conditon()
+int Lcheck_conditon_i
+Lcheck_conditon_i = 0 + 0
+T0 = Ga + 0
+T1 = 222 + 0
+T0 == T1
+BNZ Label2
+T2 = Lcheck_conditon_i + 1
+Lcheck_conditon_i = T2 + 0
+GOTO Label1
+Label2:
+Label1:
+T3 = Ga + 0
+T4 = 10 + 212
+T3 != T4
+BNZ Label4
+T5 = Lcheck_conditon_i + 2
+Lcheck_conditon_i = T5 + 0
+GOTO Label3
+Label4:
+Label3:
+T6 = Ga + 0
+T7 = 110 * 2
+T7 = T7 + 2
+T6 >= T7
+BNZ Label6
+T8 = Lcheck_conditon_i + 5
+Lcheck_conditon_i = T8 + 0
+GOTO Label5
+Label6:
+Label5:
+T9 = Ga + 0
+T10 = 50 + 61
+T10 = T10 * 2
+T9 <= T10
+BNZ Label8
+T11 = Lcheck_conditon_i + 10
+Lcheck_conditon_i = T11 + 0
+GOTO Label7
+Label8:
+Label7:
+T12 = Ga + 0
+T13 = 222 + 0
+T12 < T13
+BNZ Label10
+T14 = Lcheck_conditon_i + 20
+Lcheck_conditon_i = T14 + 0
+GOTO Label9
+Label10:
+Label9:
+T15 = Ga + 0
+T16 = 222 + 0
+T15 > T16
+BNZ Label12
+T17 = Lcheck_conditon_i + 50
+Lcheck_conditon_i = T17 + 0
+GOTO Label11
+Label12:
+Label11:
+Print String "guanxi="
+T18 = Lcheck_conditon_i + 0
 Print Ident T18
-T19 = Lmain_j + 98
-T19 = T19 - 98
-T19 = T19 + 1
-Print Ident T19
-T20 = 98 + 0
-Print Ident T20
-T21 = 98 + 0
-Print Ident T21
-T22 = 1 + 0
-Gj = 0 + T22
-T23 = 2 + 2
-T24 = 2 + 2
-T23 = 1 * T23
-T23 = T23 / T24
-T26 = 1 + 3
-T27 = 5 - 4
-T27 = T27 + 4
-T28 = Lmain_j + 1
-T26 = T26 / 4
-T26 = T26 * 5
-T26 = T26 / T27
-T23 = T23 + T26
-T23 = T23 + T28
-T23 = T23 - 3
-Gj = 0 + T23
-T30 = Lmain_j + 0
+T19 = Lcheck_conditon_i + 0
+T20 = 0 + 0
+T19 != T20
+BNZ Label14
+T21 = 0 + 0
+Lcheck_conditon_i = T21 + 0
+GOTO Label13
+Label14:
+Label13:
+T22 = Ga + 0
+T23 = 0 + 0
+T22 < T23
+BNZ Label16
+T24 = 0 - 1
+Lcheck_conditon_i = T24 + 0
+T25 = Lcheck_conditon_i - 1
+Lcheck_conditon_i = T25 + 0
+GOTO Label15
+Label16:
+T26 = Ga + 0
+T27 = 0 + 0
+T26 == T27
+BNZ Label18
+T28 = 0 + 0
+Lcheck_conditon_i = T28 + 0
+GOTO Label17
+Label18:
+T29 = 1 + 0
+Lcheck_conditon_i = T29 + 0
+Label17:
+Label15:
+Print String "tiaojian="
+T30 = Lcheck_conditon_i + 0
 Print Ident T30
-Print String "2222"
+T31 = 0 + 0
+Lcheck_conditon_i = T31 + 0
+T32 = Lcheck_conditon_i + 0
+T33 = 0 + 0
+T32 == T33
+BNZ Label20
+GOTO Label19
+Label20:
+T34 = 100 + 0
+Lcheck_conditon_i = T34 + 0
+Label19:
+Print String "kongyuju="
+T35 = Lcheck_conditon_i + 0
+Print Ident T35
+ret
+void check_empty()
+ret
+void main()
+Print String "18182601"
+T0 = Gc_c + 0
+push T0
+call check_1
+T1 = RET + 0
+Gb_c = T1 + 0
+Print String "check_1="
+T2 = Gb_c + 0
+Print Ident T2
+T3 = Ga + 0
+T4 = Gb_c + 0
+push T3
+push T4
+call check_assign
+T5 = RET + 0
+Gans = T5 + 0
+Print String "check_assign="
+T6 = Gans + 0
+Print Ident T6
+call check_conditon
+call check_empty
+ret

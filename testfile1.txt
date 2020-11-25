@@ -1,0 +1,75 @@
+const int a = 1;
+const char b = 'b';
+int test;
+char testc;
+int array[2][2] = {{1,2},{2,1}};
+
+int add(int i, int j) {
+    int a;
+    a = i + j;
+    return (a);
+}
+
+void main(){
+    int j = 2;
+    char jj = 'b';
+    j = 1*((1+1)*1+1)+1*(1+1);
+    if (j == 5) {
+        j = 3;
+        printf("j=3 ",j);
+    }
+
+    if (j < 2) {
+        j = 2;
+    }
+    else {
+        j = 2;
+        printf("j=2 ",j);
+    }
+
+    for (j = 1; j < 4; j = j + 1) {
+        jj = 'c';
+        
+    }
+    printf("jj=c ",jj);
+    while (j > 1) {
+        jj = 'd';
+        j=0;
+    }
+    printf("jj=d ",jj);
+    printf("j=0 ",j);
+    switch(jj) {
+        case 'd': j = 1;
+        case 'a': j = 0;
+        default: j = 2;
+    }
+    printf("j=1 ",j);
+    j = add(j,j);
+    printf("j=2 ",j);
+    j = 1;
+    printf("j=1 ",j);
+    j = 1/j;
+    test = 2;
+    j = test;
+    j = array[0][0];
+    printf("j=1\n ",j);
+    array[0][0] = 2;
+    j = array[0][0];
+    printf("j=2 ",j);
+    test = 1*1 +1*1+1*1+1*1+1*1+1*1+1*1+1*1+1*1+1*1+(1);
+    printf("Hello World",test+jj);
+    scanf(jj);
+    printf(jj);
+    scanf(j);
+    printf(j);
+    printf(test);
+    j = (test +1 *1 +1*1)*1*(5)/5-3;
+    printf(j);
+    printf(j + 'b' - b+1);
+    printf(b);
+    printf('b');
+    j=1;
+    j = (1*(2+2)/(2+2))+(1+3)/4*5/(5-4+4)+(j+1)-3;
+    printf(j);
+    printf("2222");
+}

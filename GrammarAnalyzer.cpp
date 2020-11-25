@@ -54,6 +54,10 @@ void GrammarAnalyzer::program() {
     if (SYMTYPE == INTTK || SYMTYPE == CHARTK) {
         varDeclaration();
     }
+    FourYuanItem fourItem;
+    fourItem.codeType = FunctionCall;
+    fourItem.target = "main";
+    codeItems.push_back(fourItem);
     while (SYMTYPE == INTTK || SYMTYPE == CHARTK || SYMTYPE == VOIDTK) {
         if (SYMTYPE == INTTK || SYMTYPE == CHARTK) {
             returnFun();
@@ -67,6 +71,9 @@ void GrammarAnalyzer::program() {
     }
     mainFunc();
     toFile("<程序>");
+    FourYuanItem fy;
+    fy.codeType = Finish;
+    codeItems.push_back(fy);
     printMidCodeToFile(codeItems);
     turnToMips(codeItems);
 }
@@ -264,6 +271,7 @@ bool GrammarAnalyzer::varDefineNonInit(ValueType valueType, int flag) {
     buffIndex++;
     name = *lexicalAnalyzer.token.word;
     
+    transform(name.begin(), name.end(), name.begin(), ::tolower);
     GETSYM //[|=|,|;
     buffer[buffIndex] = buffer[buffIndex].append(type2String(SYMTYPE));
     buffer[buffIndex] = buffer[buffIndex].append(" ");
@@ -420,7 +428,7 @@ bool GrammarAnalyzer::varDefineNonInit(ValueType valueType, int flag) {
 //＜变量定义及初始化＞  ::= ＜类型标识符＞＜标识符＞=＜常量＞|＜类型标识符＞＜标识符＞'['＜无符号整数＞']'='{'＜常量＞{,＜常量＞}'}'|＜类型标识符＞＜标识符＞'['＜无符号整数＞']''['＜无符号整数＞']'='{''{'＜常量＞{,＜常量＞}'}'{, '{'＜常量＞{,＜常量＞}'}'}'}'
 void GrammarAnalyzer::varDefineInit(ValueType valueType, int dim, string name, ItemType itemType, int x, int y) {
     int flag = 0;
-    int in;
+    int in = 0;
     GETSYM
     
     if (dim == 0) {
@@ -439,12 +447,10 @@ void GrammarAnalyzer::varDefineInit(ValueType valueType, int dim, string name, I
             flag = 1;
             error.errorLog(typeMatchError, LINE);
         }
-        if (valueType == CHAR) {
-            (*cuSi).value.ch = in;
-        }
-        else {
-            (*cuSi).value.ch = in;
-        }
+        
+        (*cuSi).value.ch = in;
+        (*cuSi).value.number = in;
+        
         fy.right = to_string(0);
         fy.rightValue = 0;
         fy.left = to_string(in);
@@ -462,10 +468,10 @@ void GrammarAnalyzer::varDefineInit(ValueType valueType, int dim, string name, I
         fourItem.dim = 1;
         fourItem.codeType = AssignArray;
         if (cuFuncName == "global") {
-            fourItem.target = "G" + name;
+            fourItem.arrayName = "G" + name;
         }
         else {
-            fourItem.target = "L" + cuFuncName + "_" + name;
+            fourItem.arrayName = "L" + cuFuncName + "_" + name;
         }
         int count = 1;
         GETSYM
@@ -473,12 +479,13 @@ void GrammarAnalyzer::varDefineInit(ValueType valueType, int dim, string name, I
             flag = 1;
             error.errorLog(typeMatchError, LINE);
         }
-        fourItem.x = count - 1;
-        fourItem.targetValue = 1;
-        fourItem.leftValue = in;
-        fourItem.left = to_string(in);
-        fourItem.valueType = valueType;
+        fourItem.x = x;
+        fourItem.leftValue = count - 1;
+        fourItem.left = to_string(count - 1);
+        fourItem.dim = 1;
         fourItem.targetValue = in;
+        fourItem.target = to_string(in);
+        fourItem.valueType = valueType;
         fourItem.targetCh = in;
         codeItems.push_back(fourItem);
         while (SYMTYPE == COMMA) {
@@ -487,10 +494,11 @@ void GrammarAnalyzer::varDefineInit(ValueType valueType, int dim, string name, I
                 flag = 1;
                 error.errorLog(typeMatchError, LINE);
             }
-            fourItem.x = count;
-            fourItem.leftValue = in;
-            fourItem.left = to_string(in);
+            
+            fourItem.leftValue = count;
+            fourItem.left = to_string(count);
             fourItem.targetValue = in;
+            fourItem.target = to_string(in);
             fourItem.targetCh = in;
             codeItems.push_back(fourItem);
             count++;
@@ -509,10 +517,10 @@ void GrammarAnalyzer::varDefineInit(ValueType valueType, int dim, string name, I
         int countx = 1;
         int county = 1;
         if (cuFuncName == "global") {
-            fourItem.target = "G" + name;
+            fourItem.arrayName = "G" + name;
         }
         else {
-            fourItem.target = "L" + cuFuncName + "_" + name;
+            fourItem.arrayName = "L" + cuFuncName + "_" + name;
         }
         GETSYM //{
         GETSYM
@@ -520,12 +528,15 @@ void GrammarAnalyzer::varDefineInit(ValueType valueType, int dim, string name, I
             flag = 1;
             error.errorLog(typeMatchError, LINE);
         }
-        fourItem.x = 0;
-        fourItem.y = 0;
-        fourItem.targetValue = 2;
-        fourItem.leftValue = in;
-        fourItem.left = to_string(in);
+        fourItem.x = x;
+        fourItem.y = y;
+        fourItem.dim = 2;
+        fourItem.leftValue = 0;
+        fourItem.left = to_string(0);
+        fourItem.rightValue = 0;
+        fourItem.right = to_string(0);
         fourItem.targetValue = in;
+        fourItem.target = to_string(in);
         fourItem.targetCh = in;
         fourItem.valueType = valueType;
         codeItems.push_back(fourItem);
@@ -535,11 +546,12 @@ void GrammarAnalyzer::varDefineInit(ValueType valueType, int dim, string name, I
                 flag = 1;
                 error.errorLog(typeMatchError, LINE);
             }
-            fourItem.y = county;
-            fourItem.leftValue = in;
-            fourItem.left = to_string(in);
+            
+            fourItem.rightValue = county;
+            fourItem.right = to_string(county);
             fourItem.targetValue = in;
             fourItem.targetCh = in;
+            fourItem.target = to_string(in);
             codeItems.push_back(fourItem);
             county++;
         }
@@ -558,13 +570,14 @@ void GrammarAnalyzer::varDefineInit(ValueType valueType, int dim, string name, I
                 flag = 1;
                 error.errorLog(typeMatchError, LINE);
             }
-            fourItem.x = countx;
-            fourItem.y = county - 1;
-            fourItem.leftValue = in;
-            fourItem.left = to_string(in);
+         
+            fourItem.rightValue = county - 1;
+            fourItem.right = to_string(county - 1);
+            fourItem.leftValue = countx;
+            fourItem.left = to_string(countx);
             fourItem.targetValue = in;
             fourItem.targetCh = in;
-            
+            fourItem.target = to_string(in);
             codeItems.push_back(fourItem);
             while (SYMTYPE == COMMA) {
                 GETSYM
@@ -573,11 +586,13 @@ void GrammarAnalyzer::varDefineInit(ValueType valueType, int dim, string name, I
                     flag = 1;
                     error.errorLog(typeMatchError, LINE);
                 }
-                fourItem.y = county - 1;
-                fourItem.leftValue = in;
-                fourItem.left = to_string(in);
+                
+                fourItem.rightValue = county - 1;
+                fourItem.right = to_string(county - 1);
                 fourItem.targetValue = in;
                 fourItem.targetCh = in;
+                fourItem.target = to_string(in);
+               
                 codeItems.push_back(fourItem);
             }
             if (county != y && flag == 0) {
@@ -650,6 +665,7 @@ void GrammarAnalyzer::returnFun() {
         funcType = RETURNCHAR;
     }
     string funcName = declarationHead();
+   
     updateField(funcName, funcType);
     GETSYM
     paraTable();
@@ -700,6 +716,7 @@ void GrammarAnalyzer::nonReturnFun() {
         OUT = 1;
         funcName = *lexicalAnalyzer.token.word;
     }
+    transform(funcName.begin(), funcName.end(), funcName.begin(), ::tolower);
     updateField(funcName, VOID);
     FourYuanItem fourItem;
     fourItem.codeType = FunctionDef;
@@ -720,9 +737,9 @@ void GrammarAnalyzer::nonReturnFun() {
     GETSYM
     compoundStat();
     GETSYM
-    FourYuanItem fy;
+    /*FourYuanItem fy;
     fy.codeType = ReturnEmpty;
-    codeItems.push_back(fy);
+    codeItems.push_back(fy);*/
     toFile("<无返回值函数定义>");
 }
 //＜声明头部＞   ::=  int＜标识符＞ |char＜标识符＞
@@ -740,6 +757,7 @@ string GrammarAnalyzer::declarationHead() {
         GETSYM
     }
     string funcName = *lexicalAnalyzer.token.word;
+    transform(funcName.begin(), funcName.end(), funcName.begin(), ::tolower);
     fourItem.target = funcName;
     codeItems.push_back(fourItem);
     GETSYM
@@ -773,11 +791,18 @@ void GrammarAnalyzer::paraTable() {
     string name;
     GETSYM //标识符
     name = *lexicalAnalyzer.token.word;
+    transform(name.begin(), name.end(), name.begin(), ::tolower);
     addItem(name, PARA, valueType);
     FourYuanItem fourItem;
     fourItem.codeType = ParamDef;
     fourItem.valueType = valueType;
-    fourItem.target = name;
+    if (cuFuncName == "global") {
+        fourItem.target = "G" + name;
+    }
+    else {
+        fourItem.target = "L" + cuFuncName + "_" + name;
+    }
+    //fourItem.target = name;
     codeItems.push_back(fourItem);
     if (errorFun == 0) {
         addItem(name, cuFuncName, PARA, valueType, order);
@@ -794,11 +819,17 @@ void GrammarAnalyzer::paraTable() {
         }
         GETSYM //标识符
         name = *lexicalAnalyzer.token.word;
+        transform(name.begin(), name.end(), name.begin(), ::tolower);
         addItem(name, PARA, valueType);
         FourYuanItem fourItem;
         fourItem.codeType = ParamDef;
         fourItem.valueType = valueType;
-        fourItem.target = name;
+        if (cuFuncName == "global") {
+            fourItem.target = "G" + name;
+        }
+        else {
+            fourItem.target = "L" + cuFuncName + "_" + name;
+        }
         codeItems.push_back(fourItem);
         if (errorFun == 0) {
             addItem(name, cuFuncName, PARA, valueType, order);
@@ -821,7 +852,7 @@ void GrammarAnalyzer::compoundStat() {
 //＜语句列＞   ::= ｛＜语句＞｝
 void GrammarAnalyzer::statList(int flag) {
     map<string, SymbolItem>::iterator iter;
-    if (cuFuncType != VOID && flag == 1) {
+    if (flag == 1) {
         haveReturn = 0;
     }
     while (1) {
@@ -830,8 +861,14 @@ void GrammarAnalyzer::statList(int flag) {
         }
         stat();
     }
+    
     if (cuFuncType != VOID && haveReturn == 0 && flag == 1) {
         error.errorLog(returnFuncReturnError, LINE);
+    }
+    if (cuFuncType == VOID && haveReturn == 0 && flag == 1) {
+        FourYuanItem fy;
+        fy.codeType = ReturnEmpty;
+        codeItems.push_back(fy);
     }
     toFile("<语句列>");
 }
@@ -853,6 +890,7 @@ void GrammarAnalyzer::stat() {
         FuncType fType = ITEM.getFuncType();
         ValueType vtl = ITEM.getValueType();
         string name = ITEM.getName();
+        string funcName = ITEM.getFuncName();
         if (iType == VAR || iType == CON || iType == PARA) {
             if (iType == CON) {
                 error.errorLog(assignConError, LINE);
@@ -860,7 +898,7 @@ void GrammarAnalyzer::stat() {
                 GETSYM
                 return;
             }
-            assignStat(vtl); 
+            assignStat(vtl, funcName); 
             if (SYMTYPE != SEMICN) {
                 error.errorLog(withoutSemicn, lineNum);
             }
@@ -971,7 +1009,7 @@ void GrammarAnalyzer::loopStat() {
         string str1 = *lexicalAnalyzer.token.word;
         transform(str1.begin(), str1.end(), str1.begin(), ::tolower);
         fy.codeType = AssignState;
-        fy.target = "G" + str1;
+        //fy.target = "G" + str1;
         fy.op = '+';
         fy.right = to_string(0);
         fy.rightValue = 0;
@@ -986,6 +1024,13 @@ void GrammarAnalyzer::loopStat() {
             }
         }
         ItemType iType = ITEM.getItemType();
+        string funcName = ITEM.getFuncName();
+        if (funcName == "global") {
+            fy.target = "G" + str1;
+        }
+        else {
+            fy.target = "L" + funcName + "_" + str1;
+        }
         if (iType == CON) {
             error.errorLog(assignConError, LINE);
         }
@@ -1017,9 +1062,9 @@ void GrammarAnalyzer::loopStat() {
         FourYuanItem fy1;
         str1 = *lexicalAnalyzer.token.word;
         transform(str1.begin(), str1.end(), str1.begin(), ::tolower);
+        
         fy1.codeType = AssignState;
-        fy1.left = "G" + str1;
-        fy1.target = "G" + str1;
+        
         iter = funcTable.find(str1);
         if (iter == funcTable.end()) {
             iter = globalTable.find(str1);
@@ -1033,8 +1078,34 @@ void GrammarAnalyzer::loopStat() {
         if (iType == CON) {
             error.errorLog(assignConError, LINE);
         }
+        funcName = ITEM.getFuncName();
+        if (funcName == "global") {
+            fy1.target = "G" + str1;
+        }
+        else {
+            fy1.target = "L" + funcName + "_" + str1;
+        }
         GETSYM //=
         GETSYM //标识符
+        str1 = *lexicalAnalyzer.token.word;
+        transform(str1.begin(), str1.end(), str1.begin(), ::tolower);
+        iter = funcTable.find(str1);
+        if (iter == funcTable.end()) {
+            iter = globalTable.find(str1);
+            if (iter == globalTable.end()) {
+                error.errorLog(identNotDefine, LINE);
+                skipto(SEMICN); //+-*/;,)]><>>=<=!===
+                //printf("dont find\n");
+            }
+        }
+        //iType = ITEM.getItemType();
+        funcName = ITEM.getFuncName();
+        if (funcName == "global") {
+            fy1.left = "G" + str1;
+        }
+        else {
+            fy1.left = "L" + funcName + "_" + str1;
+        }
         GETSYM //+|-
         fy1.op = (*lexicalAnalyzer.token.word).at(0);
         GETSYM
@@ -1112,7 +1183,15 @@ ValueType GrammarAnalyzer::expr(string &tmpName) {
 		postFixItem.valueType = CHAR;
 		postFixItem.number = (SYMTYPE == PLUS) ? '+' : '-'; 
 		postFixItem.isOperator = true;
-		infix.push_back(postFixItem);
+        if (SYMTYPE == MINU) {
+            PostfixItem postFixItem1;
+            postFixItem1.valueType = INT;
+            postFixItem1.number = 0;
+            postFixItem1.isOperator = false;
+            infix.push_back(postFixItem1);
+            infix.push_back(postFixItem);
+        }
+		
         flag = 1;
         GETSYM
     }
@@ -1131,6 +1210,7 @@ ValueType GrammarAnalyzer::expr(string &tmpName) {
     bool isSure;
     int value;
     tmpName = calculateExpr(postfix, tmpCount, value, isSure, codeItems);
+    printf("tmp : %s \n", tmpName.c_str());
     
     if (flag == 1 && vt == CHAR) {
         vt = INT;
@@ -1139,6 +1219,45 @@ ValueType GrammarAnalyzer::expr(string &tmpName) {
     toFile("<表达式>");
     return vt;
 }
+
+ValueType GrammarAnalyzer::expr(vector<PostfixItem> &infix) {
+    int flag = 0;
+    if (SYMTYPE == PLUS || SYMTYPE == MINU) {
+        PostfixItem postFixItem;
+        postFixItem.valueType = CHAR;
+        postFixItem.number = (SYMTYPE == PLUS) ? '+' : '-';
+        postFixItem.isOperator = true;
+        if (SYMTYPE == MINU) {
+            PostfixItem postFixItem1;
+            postFixItem1.valueType = INT;
+            postFixItem1.number = 0;
+            postFixItem1.isOperator = false;
+            infix.push_back(postFixItem1);
+            infix.push_back(postFixItem);
+        }
+        flag = 1;
+        GETSYM
+    }
+    ValueType vt = item(infix);
+    while (SYMTYPE == PLUS || SYMTYPE == MINU) {
+        PostfixItem postFixItem;
+        postFixItem.valueType = CHAR;
+        postFixItem.number = (SYMTYPE == PLUS) ? '+' : '-';
+        postFixItem.isOperator = true;
+        infix.push_back(postFixItem);
+        flag = 1;
+        GETSYM
+        item(infix);
+    }
+ 
+
+    if (flag == 1 && vt == CHAR) {
+        vt = INT;
+    }
+    toFile("<表达式>");
+    return vt;
+}
+
 //＜项＞     ::= ＜因子＞{＜乘法运算符＞＜因子＞}    
 ValueType GrammarAnalyzer::item(vector<PostfixItem> &infix) {
     int flag = 0;
@@ -1185,8 +1304,16 @@ ValueType GrammarAnalyzer::factor(vector<PostfixItem> &infix) {
         if (iType == FUNC) {
             if (fType == RETURNCHAR || fType == RETURNINT) {
                 funStatReturn(name);
+                FourYuanItem fy;
+                fy.codeType = AssignState;
+                fy.left = "RET";
+                fy.right = "0";
+                fy.op = '+';
+                fy.rightValue = 0;
+                fy.target = generateTmpName(tmpCount++);
+                codeItems.push_back(fy);
                 postFixItem.valueType = String;
-                postFixItem.str = "RET";
+                postFixItem.str = fy.target;
                 postFixItem.isOperator = false;
                 postFixItem.isCharVar = fType == RETURNCHAR ? true : false;
                 infix.push_back(postFixItem);
@@ -1239,7 +1366,12 @@ ValueType GrammarAnalyzer::factor(vector<PostfixItem> &infix) {
                 fy.right = tmpName1;
                 fy.valueType = vt;
                 fy.target = generateTmpName(tmpCount++);
-                fy.arrayName = name;
+                if (funcName == "global") {
+                    fy.arrayName = "G" + name;
+                }
+                else {
+                    fy.arrayName = "L" + funcName + "_" + name;
+                }
                 fy.dim = 2;
                 codeItems.push_back(fy);
                 if (arrayIndex != INT) {
@@ -1268,10 +1400,18 @@ ValueType GrammarAnalyzer::factor(vector<PostfixItem> &infix) {
             else if (dim == 1) {
                 FourYuanItem fy;
                 fy.codeType = AssignByArray;
-                fy.arrayName = name;
+                if (funcName == "global") {
+                    fy.arrayName = "G" + name;
+                }
+                else {
+                    fy.arrayName = "L" + funcName + "_" + name;
+                }
                 fy.x = x;
                 fy.y = 0;
                 fy.dim = 1;
+                fy.valueType = vt;
+                fy.target = generateTmpName(tmpCount++);
+                printf("fytarget: %s \n", fy.target.c_str());
                 GETSYM
                 if (SYMTYPE == LBRACK) {
                     GETSYM
@@ -1279,6 +1419,18 @@ ValueType GrammarAnalyzer::factor(vector<PostfixItem> &infix) {
                     
                     ValueType arrayIndex = expr(tmpName0);
                     fy.left = tmpName0;
+                    codeItems.push_back(fy);
+                    postFixItem.valueType = String;
+                    if (vt == CHAR) {
+                        postFixItem.isCharVar = true;
+                    }
+                    else {
+                        postFixItem.isCharVar = false;
+                    }
+                    postFixItem.isOperator = false;
+                    postFixItem.str = fy.target;
+                    printf("poststr: %s \n", postFixItem.str.c_str());
+                    infix.push_back(postFixItem);
                     if (arrayIndex != INT) {
                         error.errorLog(arrayIndexTypeError, LINE);
                     }
@@ -1294,16 +1446,7 @@ ValueType GrammarAnalyzer::factor(vector<PostfixItem> &infix) {
                 else {
                     error.errorLog(LINE);
                 }
-                postFixItem.valueType = String;
-                if (vt == CHAR) {
-                    postFixItem.isCharVar = true;
-                }
-                else {
-                    postFixItem.isCharVar = false;
-                }
-                postFixItem.isOperator = false;
-                postFixItem.str = fy.target;
-                infix.push_back(postFixItem);
+               
             }
             else {
                 postFixItem.valueType = vt;
@@ -1342,22 +1485,18 @@ ValueType GrammarAnalyzer::factor(vector<PostfixItem> &infix) {
     else if (SYMTYPE == LPARENT) {
         
         GETSYM
-
-        string tmpName0;
-        vt = expr(tmpName0);
-        if (vt == CHAR) {
-            postFixItem.isCharVar = true;
-            }
-        else {
-            postFixItem.isCharVar = false;
-        }
-        postFixItem.isOperator = false;
+        postFixItem.isOperator = true;
         postFixItem.valueType = String;
-        postFixItem.str = tmpName0;
+        postFixItem.number = '(';
         infix.push_back(postFixItem);
+        vt = expr(infix);
+        
+        
         if (vt == CHAR) {
             vt = INT;
         }
+        postFixItem.number = ')';
+        infix.push_back(postFixItem);
         if (SYMTYPE != RPARENT) {
             error.errorLog(withoutRparent, lineNum);
         }
@@ -1491,14 +1630,13 @@ void GrammarAnalyzer::valueParaTable(string funcName) {
             return;
         }
     }
+    vector<string> paras;
     size_t i = 0;
     for (i = 0; i < size; i++) {
         string tmpName0;
         ValueType vt = expr(tmpName0);
-        fy.codeType = ValueParamDeliver;
-        fy.target = tmpName0;
-        fy.valueType = vt;
-        codeItems.push_back(fy);
+        paras.push_back(tmpName0);
+        
         SymbolItem si = (*paraVector)[i];
         if (vt != si.getValueType()) {
             error.errorLog(funcStatParaType, LINE);
@@ -1521,17 +1659,43 @@ void GrammarAnalyzer::valueParaTable(string funcName) {
         }
         //GETSYM
     }
+    fy.codeType = ValueParamDeliver;
+    for (int i = 0; i < paras.size(); i++) {
+        fy.target = paras.at(i);
+        codeItems.push_back(fy);
+    }
+   
     toFile("<值参数表>");
 }
 //＜赋值语句＞   ::=  ＜标识符＞＝＜表达式＞|＜标识符＞'['＜表达式＞']'=＜表达式＞|＜标识符＞'['＜表达式＞']''['＜表达式＞']' =＜表达式＞
-void GrammarAnalyzer::assignStat(ValueType vtl) {
+void GrammarAnalyzer::assignStat(ValueType vtl, string funcName) {
     string str1 = *lexicalAnalyzer.token.word; 
     transform(str1.begin(), str1.end(), str1.begin(), ::tolower); 
+    map<string, SymbolItem>::iterator iter;
+    iter = funcTable.find(str1);
+    if (iter == funcTable.end()) {
+        iter = globalTable.find(str1);
+        if (iter == globalTable.end()) {
+            error.errorLog(identNotDefine, LINE);
+            skipto(SEMICN);
+            return;
+        }
+    }
+    int x = ITEM.getDimx();
+    int y = ITEM.getDimy();
     FourYuanItem fy;
+    fy.x = x;
+    fy.y = y;
     fy.codeType = AssignState;
-    fy.target = "G" + str1;
-    fy.left = to_string(0);
-    fy.leftValue = 0;
+    if (funcName == "global") {
+        fy.target = "G" + str1;
+    }
+    else {
+        fy.target = "L" + funcName + "_" + str1;
+    }
+    fy.arrayName = fy.target;
+    fy.right = to_string(0);
+    fy.rightValue = 0;
     //printf("%s\n", (*lexicalAnalyzer.token.word).c_str());
     GETSYM
     if (SYMTYPE == ASSIGN) {
@@ -1539,8 +1703,9 @@ void GrammarAnalyzer::assignStat(ValueType vtl) {
         string tmpName0;
         ValueType vtr = expr(tmpName0);
         //printf("%s\n", tmpName0.c_str());
+        fy.dim = 0;
         fy.op = '+';
-        fy.right = tmpName0;
+        fy.left = tmpName0;
         codeItems.push_back(fy);
         if (vtr != vtl) {
             //error.errorLog(typeMatchError, LINE);
@@ -1551,6 +1716,7 @@ void GrammarAnalyzer::assignStat(ValueType vtl) {
         //expr();
         string tmpName0;
         ValueType arrayIndex = expr(tmpName0);
+        
         if (arrayIndex != INT) {
             error.errorLog(arrayIndexTypeError, LINE);
         }
@@ -1565,6 +1731,11 @@ void GrammarAnalyzer::assignStat(ValueType vtl) {
             GETSYM
             string tmpName2;
             ValueType vtr = expr(tmpName2);
+            fy.dim = 1;
+            fy.codeType = AssignArray;
+            fy.left = tmpName0;
+            fy.target = tmpName2;
+            codeItems.push_back(fy);
             if (vtr != vtl) {
                 //error.errorLog(typeMatchError, LINE);
             }
@@ -1586,6 +1757,12 @@ void GrammarAnalyzer::assignStat(ValueType vtl) {
                 GETSYM
                 string tmpName2;
                 ValueType vtr = expr(tmpName2);
+                fy.codeType = AssignArray;
+                fy.dim = 2;
+                fy.left = tmpName0;
+                fy.right = tmpName1;
+                fy.target = tmpName2;
+                codeItems.push_back(fy);
                 if (vtr != vtl) {
                     //error.errorLog(typeMatchError, LINE);
                 }
@@ -1672,7 +1849,7 @@ void GrammarAnalyzer::scanfStat() {
     GETSYM //标识符
     string str1 = *lexicalAnalyzer.token.word; 
     transform(str1.begin(), str1.end(), str1.begin(), ::tolower);
-    fy.target = "G" + str1;
+    
     map<string, SymbolItem>::iterator iter; 
     iter = funcTable.find(str1); 
     if (iter == funcTable.end()) { 
@@ -1682,6 +1859,13 @@ void GrammarAnalyzer::scanfStat() {
             skipto(SEMICN); 
             return; 
         } 
+    }
+    string funcName = ITEM.getFuncName();
+    if (funcName == "global") {
+        fy.target = "G" + str1;
+    }
+    else {
+        fy.target = "L" + funcName + "_" + str1;
     }
     ItemType it = ITEM.getItemType();
     ValueType vt = ITEM.getValueType();
@@ -1769,8 +1953,9 @@ void GrammarAnalyzer::returnStat() {
     GETSYM
     
     if (SYMTYPE == SEMICN) {
-        // fy.codeType = ReturnEmpty;
-        // codeItems.push_back(fy);
+       
+         fy.codeType = ReturnEmpty;
+         codeItems.push_back(fy);
         if (cuFuncType != VOID) {
             error.errorLog(returnFuncReturnError, LINE);
             //printf("dd\n");
@@ -1902,11 +2087,12 @@ void GrammarAnalyzer::addItem(string name, ItemType itemType, ValueType valueTyp
     fy.valueType = valueType;
     fy.x = i;
     fy.y = j;
+    fy.dim = dim;
     if (cuFuncName == "global") {
         fy.target = "G" + name;
     }
     else {
-        fy.target = "T" + cuFuncName + "_" + name;
+        fy.target = "L" + cuFuncName + "_" + name;
     }
     fy.order = order++;
     codeItems.push_back(fy);

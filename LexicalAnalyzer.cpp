@@ -122,7 +122,7 @@ void LexicalAnalyzer::getSymbol() {
                 c = getChar();
                 
             }
-            printf("mydddde %c %d \n", c,lineNum);
+            //printf("mydddde %c %d \n", c,lineNum);
             symbolType = CHARCON; 
             c = getChar();    
             return;
@@ -137,8 +137,11 @@ void LexicalAnalyzer::getSymbol() {
         }
         int flag = 0;
         while (c != '\"') {
-            
-            if ((int)c == 32 || (int)c == 33 || ((int)c >= 35 && (int)c <= 126)) {
+            if (c == '\\') {
+                str.append(1, c);
+                str.append(1, c);
+            }
+            else if ((int)c == 32 || (int)c == 33 || ((int)c >= 35 && (int)c <= 126)) {
                 str.append(1, c);
             }
             else {
