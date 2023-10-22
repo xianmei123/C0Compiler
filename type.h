@@ -123,6 +123,7 @@ struct FourYuanItem {
     int x;
     int y;
     int order;
+    bool isSure;
     string arrayName;
     int dim;
 };
@@ -133,6 +134,13 @@ struct PostfixItem {
 	int number;					  
 	bool isCharVar;				  
 	bool isOperator;
+};
+
+struct DagNode {
+    char op;
+    int lIndex;
+    int rIndex;
+    string name;
 };
 
 #endif

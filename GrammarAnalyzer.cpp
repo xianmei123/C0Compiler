@@ -18,6 +18,7 @@ int errorFun = 0;
 map<string, SymbolItem> funcTable;
 map<string, SymbolItem> globalTable;
 map<string, vector<SymbolItem>> paras;
+
 SymbolItem *cuSi;
 int lineNum = 1;
 int OUT = 1;
@@ -74,8 +75,15 @@ void GrammarAnalyzer::program() {
     FourYuanItem fy;
     fy.codeType = Finish;
     codeItems.push_back(fy);
-    printMidCodeToFile(codeItems);
-    turnToMips(codeItems);
+    
+    optBlock(codeItems);
+    liveVar();
+    //optAssignRight0();
+    //optDag();
+    printBlock();
+   
+    //printMidCodeToFile(codeItems);
+    turnToMips();
 }
 
 //＜主函数＞ ::= void main‘(’‘)’ ‘{’＜复合语句＞‘}’       
@@ -1556,6 +1564,7 @@ void GrammarAnalyzer::conditionalStat() {
     if (SYMTYPE == ELSETK) {
         GETSYM
         stat();
+        
     }
     fy.codeType = Label;
     fy.target = label1;
@@ -2220,7 +2229,7 @@ bool GrammarAnalyzer::isNotDefined(string name) {
 
 void GrammarAnalyzer::updateField(string name, FuncType ft) {
     order = 0;
-    tmpCount = 0;
+    //tmpCount = 0;
     cuFuncName = "global";
     if (!isDefined(name)) {
         errorFun = 0;
